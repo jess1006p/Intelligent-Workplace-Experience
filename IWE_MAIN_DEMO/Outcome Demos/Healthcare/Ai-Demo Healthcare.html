@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Healthcare Operations Intelligence — AI Demo (Final)</title>
+<style>
+  :root{
+    --iwe-bg-top:#070b16;
+    --iwe-bg-mid:#0c1428;
+    --iwe-bg-bottom:#3a1c24;
+    --iwe-surface:rgba(255,255,255,0.03);
+    --iwe-surface-raised:rgba(255,255,255,0.06);
+    --iwe-border:rgba(0,188,235,0.18);
+    --iwe-border-strong:rgba(0,188,235,0.35);
+    --iwe-text:#ffffff;
+    --iwe-text-muted:rgba(255,255,255,0.65);
+    --iwe-text-soft:rgba(255,255,255,0.85);
+
+    --cisco:#00bceb;
+    --cisco-dark:#0088b0;
+    --bg:transparent;
+    --card:var(--iwe-surface);
+    --ink:var(--iwe-text-soft);
+    --muted:var(--iwe-text-muted);
+    --line:var(--iwe-border);
+    --good:#86BE5B;
+    --warn:#f39c12;
+    --bad:#e74c3c;
+    --info:#00bceb;
+    --clinical:#e74c3c;
+    --operations:#00bceb;
+    --finance:#86BE5B;
+    --experience:#9b59b6;
+  }
+  *{box-sizing:border-box;font-family:'Segoe UI',Roboto,sans-serif}
+  body{
+    margin:0;
+    background:linear-gradient(to bottom,var(--iwe-bg-top) 0%,var(--iwe-bg-mid) 50%,var(--iwe-bg-bottom) 100%);
+    background-attachment:fixed;
+    color:var(--iwe-text);
+    min-height:100vh;
+  }
+  header{
+    background:transparent;
+    color:#fff;
+    padding:24px 40px;
+    border-bottom:1px solid var(--iwe-border);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  header h1{margin:0;font-size:26px;color:var(--cisco)}
+  header p{margin:6px 0 0;opacity:.9}
+  .container{max-width:1400px;margin:24px auto;padding:0 24px}
+
+  .api-bar{background:var(--card);border-radius:14px;padding:14px 20px;margin-bottom:20px;
+    box-shadow:0 8px 32px rgba(0,0,0,.35);border:1px solid var(--iwe-border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .api-bar input{padding:8px 12px;border:1px solid var(--iwe-border-strong);border-radius:6px;font-size:13px;flex:1;min-width:280px;font-family:monospace;background:var(--iwe-surface-raised);color:var(--iwe-text)}
+  .api-bar button{background:var(--cisco);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px}
+  .api-bar .status{font-size:12px;color:var(--muted)}
+  .api-bar .status.ok{color:var(--good);font-weight:600}
+
+  .scenario-bar{background:var(--card);border-radius:14px;padding:14px 20px;margin-bottom:20px;
+    box-shadow:0 8px 32px rgba(0,0,0,.35);border:1px solid var(--iwe-border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .scenario-bar select{padding:8px 12px;border:1px solid var(--iwe-border-strong);border-radius:6px;font-size:14px;flex:1;min-width:280px;background:var(--iwe-surface-raised);color:var(--iwe-text)}
+  .scenario-bar button{background:var(--cisco);color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-weight:600}
+  .scenario-bar button:hover{background:var(--cisco-dark)}
+
+  .panel{background:var(--card);border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,.35);border:1px solid var(--iwe-border)}
+  .panel h2{margin:0 0 14px;color:var(--cisco);font-size:18px;border-bottom:2px solid var(--iwe-border);padding-bottom:8px}
+
+  /* ============ RADIAL ECOSYSTEM ============ */
+  .ecosystem-radial{position:relative;width:100%;min-height:680px;padding:20px 0}
+  .hospital-center{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #1ba0d7, #0d4a6e);
+    box-shadow:0 0 0 8px rgba(27,160,215,.15), 0 0 0 16px rgba(27,160,215,.08), 0 8px 30px rgba(13,74,110,.4);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#fff;text-align:center;z-index:10;
+    animation:hospitalPulse 3s ease-in-out infinite;
+  }
+  @keyframes hospitalPulse{
+    0%,100%{box-shadow:0 0 0 8px rgba(27,160,215,.15), 0 0 0 16px rgba(27,160,215,.08), 0 8px 30px rgba(13,74,110,.4)}
+    50%{box-shadow:0 0 0 12px rgba(27,160,215,.25), 0 0 0 24px rgba(27,160,215,.12), 0 8px 30px rgba(13,74,110,.5)}
+  }
+  .hospital-center .icon{font-size:54px;line-height:1}
+  .hospital-center .label{font-size:13px;font-weight:700;margin-top:6px;letter-spacing:.5px}
+  .hospital-center .sub{font-size:10px;opacity:.85;margin-top:2px}
+  .connections{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+  .cluster-label{
+    position:absolute;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+    padding:4px 12px;border-radius:14px;color:#fff;z-index:5;
+  }
+  .cluster-label.clinical   {background:var(--clinical);   top:12px; left:50%; transform:translateX(-50%)}
+  .cluster-label.operations {background:var(--operations); top:50%; right:12px; transform:translateY(-50%)}
+  .cluster-label.finance    {background:var(--finance);    bottom:12px; left:50%; transform:translateX(-50%)}
+  .cluster-label.experience {background:var(--experience); top:50%; left:12px; transform:translateY(-50%)}
+  .src-node{
+    position:absolute;width:150px;background:var(--iwe-surface-raised);border-radius:10px;padding:10px 12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);border:2px solid var(--iwe-border);
+    z-index:6;transition:transform .25s,box-shadow .25s;
+  }
+  .src-node:hover{transform:scale(1.06);box-shadow:0 6px 18px rgba(0,0,0,.15);z-index:20}
+  .src-node .live{position:absolute;top:6px;right:6px;background:var(--good);color:#fff;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700}
+  .src-node h4{margin:0 0 3px;font-size:12px;color:var(--ink);padding-right:30px}
+  .src-node .icon-row{font-size:18px;margin-bottom:2px}
+  .src-node .cat{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .src-node .metrics{font-size:10px;color:var(--ink);margin-top:6px;line-height:1.4}
+  .src-node.clinical   {border-color:var(--clinical)}
+  .src-node.operations {border-color:var(--operations)}
+  .src-node.finance    {border-color:var(--finance)}
+  .src-node.experience {border-color:var(--experience)}
+  .ecosystem-caption{text-align:center;margin-top:18px;color:var(--muted);font-size:13px;font-style:italic}
+
+  /* Subtle analyzing banner */
+  .analyzing-banner{
+    display:none;
+    align-items:center;justify-content:center;gap:10px;
+    margin-top:14px;padding:10px 18px;
+    background:linear-gradient(90deg,#eaf6fd,#f4faff,#eaf6fd);
+    border:1px solid var(--cisco);border-radius:24px;
+    color:var(--cisco-dark);font-size:13px;font-weight:600;font-style:italic;
+    box-shadow:0 2px 8px rgba(27,160,215,.15);
+    max-width:420px;margin-left:auto;margin-right:auto;
+    animation:bannerPulse 1.8s ease-in-out infinite;
+  }
+  .analyzing-banner.active{display:flex}
+  @keyframes bannerPulse{0%,100%{opacity:1}50%{opacity:.65}}
+  .analyzing-dot{
+    width:10px;height:10px;border-radius:50%;background:var(--cisco);
+    animation:dotBlink 1s ease-in-out infinite;flex-shrink:0;
+  }
+  @keyframes dotBlink{
+    0%,100%{transform:scale(1);opacity:1}
+    50%{transform:scale(1.4);opacity:.5}
+  }
+
+  .live-agent{background:linear-gradient(135deg,#fff,#eaf6fd);border:2px solid var(--cisco)}
+  .live-agent h2{color:var(--cisco-dark)}
+  .agent-input{display:flex;gap:10px;margin-bottom:14px}
+  .agent-input textarea{flex:1;padding:12px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;min-height:60px}
+  .agent-input button{background:var(--cisco);color:#fff;border:none;padding:0 24px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;min-width:120px}
+  .agent-input button:hover{background:var(--cisco-dark)}
+  .agent-input button:disabled{background:#aaa;cursor:not-allowed}
+
+  .quick-prompts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .qp{background:var(--iwe-surface-raised);border:1px solid var(--cisco);color:var(--cisco);padding:6px 12px;border-radius:16px;font-size:12px;cursor:pointer;transition:all .2s}
+  .qp:hover{background:var(--cisco);color:#fff}
+  .qp.live{border-color:#9b59b6;color:#9b59b6}
+  .qp.live:hover{background:#9b59b6;color:#fff}
+
+  .ai-thinking{padding:14px;background:#eef7fc;border-left:3px solid var(--cisco);border-radius:6px;font-style:italic;color:var(--cisco-dark);display:none}
+  .ai-thinking.active{display:block;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+  .ai-answer{padding:18px;background:linear-gradient(135deg,#eaf6fd,#fff);border:1px solid var(--cisco);border-radius:8px;display:none}
+  .ai-answer.active{display:block}
+  .ai-answer h3{margin-top:0;color:var(--cisco-dark)}
+  .ai-answer .source-tag{display:inline-block;background:var(--cisco);color:#fff;font-size:10px;padding:2px 8px;border-radius:3px;margin-bottom:10px;font-weight:600}
+  .ai-answer .source-tag.live{background:#9b59b6}
+
+  .data-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .data-card{background:#fafcfd;border:1px solid var(--line);border-radius:6px;padding:12px}
+  .data-card h5{margin:0 0 6px;font-size:12px;color:var(--cisco-dark)}
+  .data-card .val{font-size:16px;font-weight:700}
+  .data-card .delta{font-size:11px;margin-top:4px}
+  .delta.up{color:var(--bad)} .delta.down{color:var(--good)} .delta.flat{color:var(--muted)}
+
+  .recommendations{margin-top:14px}
+  .rec{padding:10px 14px;border-left:3px solid var(--good);background:#f4faf6;margin-bottom:8px;border-radius:4px;font-size:13px}
+  .rec.urgent{border-left-color:var(--bad);background:#fdf3f2}
+  .rec.warn{border-left-color:var(--warn);background:#fdf8ec}
+
+  .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .kpi{background:#0d4a6e;color:#fff;padding:14px;border-radius:8px;text-align:center}
+  .kpi .num{font-size:24px;font-weight:700}
+  .kpi .lbl{font-size:11px;opacity:.85;margin-top:4px}
+
+  .data-context{background:#f8fafc;border:1px dashed var(--line);border-radius:6px;padding:12px;margin-top:12px;font-size:11px;color:var(--muted);font-family:monospace;max-height:160px;overflow-y:auto}
+  .data-context strong{color:var(--cisco-dark)}
+
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+  .mcp-panel{background:linear-gradient(135deg,#fff,#f0f4f8);border:2px solid #0d4a6e}
+  .mcp-panel h2{color:var(--cisco-dark)}
+  .mcp-status{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:8px}
+  .mcp-stat{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:center}
+  .mcp-label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .mcp-val{font-size:13px;font-weight:600;color:var(--ink);font-family:monospace}
+  .mcp-val.ok{color:var(--good)}
+  .mcp-step{background:var(--card);border-left:3px solid var(--cisco);border-radius:4px;padding:12px 14px;margin-bottom:10px;
+    opacity:0;transform:translateY(-4px);transition:opacity .4s,transform .4s}
+  .mcp-step.show{opacity:1;transform:translateY(0)}
+  .mcp-step.thinking{border-left-color:var(--warn);background:rgba(243,156,18,0.12)}
+  .mcp-step.executing{border-left-color:#9b59b6;background:#faf5fc}
+  .mcp-step.complete{border-left-color:var(--good);background:#f4faf6}
+  .mcp-step-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .mcp-step-title{font-weight:600;font-size:13px;color:var(--cisco-dark)}
+  .mcp-step-time{font-size:11px;color:var(--muted);font-family:monospace}
+  .mcp-step-body{font-size:12px;color:var(--ink);line-height:1.5}
+  .spl-query{background:#1e2a36;color:#a8dafc;padding:10px 12px;border-radius:4px;
+    font-family:'Consolas','Monaco',monospace;font-size:11.5px;margin:6px 0;overflow-x:auto;white-space:pre}
+  .spl-query .kw{color:#ffa657;font-weight:600}
+  .spl-query .str{color:#7ee787}
+  .spl-query .num{color:#79c0ff}
+  .spl-query .cmt{color:#8b949e;font-style:italic}
+  .spl-result{background:#fafcfd;border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin-top:6px;
+    font-family:monospace;font-size:11px;max-height:160px;overflow-y:auto}
+  .spl-result table{width:100%;border-collapse:collapse}
+  .spl-result th{text-align:left;padding:4px 8px;background:#eaf6fd;color:var(--cisco-dark);font-size:10px;border-bottom:1px solid var(--line)}
+  .spl-result td{padding:3px 8px;border-bottom:1px solid #f0f4f8;font-size:11px}
+  .spl-result .meta{color:var(--muted);font-size:10px;margin-bottom:4px}
+  .mcp-spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--line);border-top-color:var(--cisco);
+    border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  footer{text-align:center;padding:30px;color:var(--muted);font-size:12px}
+
+  @media (max-width:1100px){
+    .ecosystem-radial{min-height:auto}
+    .src-node{position:static;width:100%;margin-bottom:10px}
+    .hospital-center{position:relative;left:auto;top:auto;transform:none;margin:0 auto 20px}
+    .connections,.cluster-label{display:none}
+  }
+
+  /* IWE dark shell overrides */
+  .analyzing-banner{
+    background:rgba(0,188,235,0.1);
+    border-color:var(--cisco);
+    color:var(--cisco);
+  }
+  .live-agent{
+    background:var(--iwe-surface);
+    border:2px solid var(--iwe-border);
+  }
+  .live-agent h2{color:var(--cisco)}
+  .agent-input textarea{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border-strong);
+    color:var(--iwe-text);
+  }
+  .qp{
+    background:var(--iwe-surface-raised);
+    border-color:var(--cisco);
+    color:var(--cisco);
+  }
+  .ai-thinking{
+    background:rgba(0,188,235,0.1);
+    color:var(--cisco);
+  }
+  .ai-answer{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border);
+  }
+  .ai-answer h3{color:var(--cisco)}
+  .data-card{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border);
+  }
+  .data-card h5{color:var(--cisco)}
+  .rec{background:rgba(134,190,91,0.12)}
+  .rec.urgent{background:rgba(231,76,60,0.12)}
+  .rec.warn{background:rgba(243,156,18,0.12)}
+  .data-context{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border);
+  }
+  .data-context strong{color:var(--cisco)}
+  .mcp-panel{
+    background:var(--iwe-surface);
+    border:2px solid var(--iwe-border);
+  }
+  .mcp-panel h2{color:var(--cisco)}
+  .mcp-stat{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border);
+  }
+  .mcp-step{background:var(--iwe-surface-raised)}
+  .mcp-step.thinking{background:rgba(243,156,18,0.12)}
+  .mcp-step.executing{background:rgba(155,89,182,0.12)}
+  .mcp-step.complete{background:rgba(134,190,91,0.12)}
+  .mcp-step-title{color:var(--cisco)}
+  .spl-result{
+    background:var(--iwe-surface-raised);
+    border-color:var(--iwe-border);
+  }
+  .spl-result th{
+    background:rgba(0,188,235,0.12);
+    color:var(--cisco);
+    border-bottom-color:var(--iwe-border);
+  }
+  .spl-result td{
+    border-bottom-color:var(--iwe-border);
+    color:var(--iwe-text-soft);
+  }
+  .kpi{
+    background:linear-gradient(135deg,rgba(0,188,235,0.25),rgba(13,74,110,0.55));
+    border:1px solid var(--iwe-border);
+  }
+  footer{
+    border-top:1px solid var(--iwe-border);
+    color:var(--iwe-text-muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 Healthcare Operations Intelligence Platform</h1>
+  <p>Unified AI Agent for Clinical, Operational & Financial Insight — Powered by Cisco + Splunk MCP + Claude</p>
+</header>
+
+<div class="container">
+
+  <!-- API KEY BAR -->
+  <div class="api-bar">
+    <strong>🔑 Claude API Key:</strong>
+    <input type="password" id="apiKey" placeholder="sk-ant-... (optional — only needed for live ad-hoc queries)" />
+    <button onclick="saveKey()">Save Key</button>
+    <span class="status" id="keyStatus">No key — pattern-matched answers only</span>
+    <a href="https://console.anthropic.com/" target="_blank" style="font-size:12px;color:var(--cisco)">Get a key →</a>
+  </div>
+
+  <!-- ECOSYSTEM PANEL (RADIAL) — the "main picture" shown on load -->
+  <div class="panel">
+    <h2>Connected Hospital Data Ecosystem</h2>
+    <div class="ecosystem-radial" id="ecosystem">
+      <svg class="connections" id="connSvg" viewBox="0 0 1200 680" preserveAspectRatio="none"></svg>
+
+      <div class="cluster-label clinical">🩺 Clinical</div>
+      <div class="cluster-label operations">⚙️ Operations</div>
+      <div class="cluster-label finance">💰 Finance & Supply</div>
+      <div class="cluster-label experience">⭐ Experience & IoT</div>
+
+      <div class="hospital-center">
+        <div class="icon">🏥</div>
+        <div class="label">SPLUNK MCP</div>
+        <div class="sub">Unified Layer</div>
+        <div class="sub">12 Sources · AI Agent</div>
+      </div>
+
+      <!-- CLINICAL CLUSTER (top) -->
+      <div class="src-node clinical" style="top:60px;left:30%"><span class="live">LIVE</span>
+        <div class="icon-row">🏥</div><div class="cat">Clinical · EHR</div>
+        <h4>Epic / Cerner</h4>
+        <div class="metrics">412 inpatients<br>67 admits today<br>54 discharges</div>
+      </div>
+      <div class="src-node clinical" style="top:60px;left:55%"><span class="live">LIVE</span>
+        <div class="icon-row">🦠</div><div class="cat">Clinical · IPC</div>
+        <h4>Infection Control</h4>
+        <div class="metrics">CLABSI: 0.9/1k<br>CAUTI: 1.8/1k<br>SSI: 2.7%</div>
+      </div>
+      <div class="src-node clinical" style="top:160px;left:18%"><span class="live">LIVE</span>
+        <div class="icon-row">💊</div><div class="cat">Clinical · Pharmacy</div>
+        <h4>BCMA / Pyxis</h4>
+        <div class="metrics">4,820 doses<br>Errors: 6.4/1k<br>14 near-misses</div>
+      </div>
+
+      <!-- OPERATIONS CLUSTER (right) -->
+      <div class="src-node operations" style="top:160px;right:18%"><span class="live">LIVE</span>
+        <div class="icon-row">🛏</div><div class="cat">Ops · Beds</div>
+        <h4>Bed Mgmt</h4>
+        <div class="metrics">84% occupancy<br>ICU: 91% ⚠<br>78 available</div>
+      </div>
+      <div class="src-node operations" style="top:300px;right:30px"><span class="live">LIVE</span>
+        <div class="icon-row">🚑</div><div class="cat">Ops · ED</div>
+        <h4>Emergency Dept</h4>
+        <div class="metrics">38 in ED now<br>Wait: 47 min<br>LOS: 218 min</div>
+      </div>
+      <div class="src-node operations" style="top:440px;right:18%"><span class="live">LIVE</span>
+        <div class="icon-row">🩻</div><div class="cat">Ops · Imaging</div>
+        <h4>RIS / PACS</h4>
+        <div class="metrics">CT: 88% ⚠<br>MRI: 72%<br>Backlog: 23</div>
+      </div>
+
+      <!-- FINANCE & SUPPLY CLUSTER (bottom) -->
+      <div class="src-node finance" style="bottom:60px;left:30%"><span class="live">LIVE</span>
+        <div class="icon-row">💳</div><div class="cat">Finance · RCM</div>
+        <h4>Revenue Cycle</h4>
+        <div class="metrics">Denials: 9.8%<br>A/R: 47 days<br>$2,873/day</div>
+      </div>
+      <div class="src-node finance" style="bottom:60px;left:55%"><span class="live">LIVE</span>
+        <div class="icon-row">📦</div><div class="cat">Finance · Supply</div>
+        <h4>Supply Chain</h4>
+        <div class="metrics">PPE: 18 days<br>Critical meds: 94%<br>3 reorder alerts</div>
+      </div>
+      <div class="src-node finance" style="bottom:160px;left:55%"><span class="live">LIVE</span>
+        <div class="icon-row">👩‍⚕️</div><div class="cat">Finance · HR</div>
+        <h4>Workforce</h4>
+        <div class="metrics">142 nurses<br>Med-surg: 1:5.2<br>ICU: 1:1.8</div>
+      </div>
+
+      <!-- EXPERIENCE & IoT CLUSTER (left) -->
+      <div class="src-node experience" style="top:160px;left:30px"><span class="live">LIVE</span>
+        <div class="icon-row">📡</div><div class="cat">IoT · RTLS</div>
+        <h4>Cisco Spaces</h4>
+        <div class="metrics">2,140 assets<br>892 staff badges<br>412 patient tags</div>
+      </div>
+      <div class="src-node experience" style="top:300px;left:30px"><span class="live">LIVE</span>
+        <div class="icon-row">⭐</div><div class="cat">Experience · CX</div>
+        <h4>HCAHPS / Kiosk</h4>
+        <div class="metrics">Top-box: 74%<br>Call resp: 5.2 min<br>NPS: +38</div>
+      </div>
+      <div class="src-node experience" style="top:440px;left:18%"><span class="live">LIVE</span>
+        <div class="icon-row">🎫</div><div class="cat">IoT · ITSM</div>
+        <h4>ServiceNow</h4>
+        <div class="metrics">Open WOs: 7<br>MTTR: 42 min<br>3 active</div>
+      </div>
+    </div>
+    <div class="ecosystem-caption">
+      Each system holds critical insight — but operates as an isolated data silo today. Splunk MCP unifies all 12 sources into one AI-queryable layer.
+    </div>
+
+    <!-- Subtle analyzing banner -->
+    <div class="analyzing-banner" id="analyzingBanner">
+      <span class="analyzing-dot"></span>
+      <span class="analyzing-text">AI Agent analyzing across data sources...</span>
+    </div>
+  </div>
+
+  <!-- SCENARIO SELECTOR -->
+  <div class="scenario-bar">
+    <strong>Or pick a pre-built scenario:</strong>
+    <select id="scenarioSelect">
+      <option value="ed_surge">🚨 ED Surge & Patient Flow Bottleneck</option>
+      <option value="hai_outbreak">🦠 Hospital-Acquired Infection Cluster Detection</option>
+      <option value="readmission">🔁 30-Day Readmission Risk Prediction</option>
+      <option value="med_error">💊 Medication Error Pattern Analysis</option>
+      <option value="resource">🩻 MRI/CT Bottleneck & Resource Optimization</option>
+      <option value="supply">📦 PPE & Medication Supply Chain Alert</option>
+      <option value="revenue">💳 Claims Denial Root Cause Analysis</option>
+      <option value="experience">⭐ Patient Experience & Call Response</option>
+    </select>
+    <button onclick="runScenario()">▶ Run AI Analysis</button>
+  </div>
+
+  <!-- LIVE AI AGENT PANEL -->
+  <div class="panel live-agent">
+    <h2>🧠 Live AI Agent — Ask Anything About the Hospital</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:var(--muted)">
+      Type any operational, clinical, financial, or experience question. The agent invokes Splunk MCP queries and reasons over the results.
+    </p>
+
+    <div class="quick-prompts">
+      <strong style="font-size:12px;color:var(--cisco-dark);margin-right:8px;align-self:center">🎯 Pattern-matched (instant):</strong>
+      <span class="qp" onclick="askAgent('Why is the ED so backed up right now?')">Why is the ED so backed up?</span>
+      <span class="qp" onclick="askAgent('Are we seeing any infection clusters?')">Any infection clusters?</span>
+      <span class="qp" onclick="askAgent('Which discharges today are high readmission risk?')">High readmission risk discharges?</span>
+      <span class="qp" onclick="askAgent('Where are our medication error patterns?')">Med error patterns?</span>
+      <span class="qp" onclick="askAgent('Why is CT so backed up while MRI is idle?')">CT vs MRI imbalance?</span>
+      <span class="qp" onclick="askAgent('Are we at risk of PPE stockout?')">PPE stockout risk?</span>
+      <span class="qp" onclick="askAgent('Why is our claims denial rate so high?')">High claim denials?</span>
+      <span class="qp" onclick="askAgent('Why are 5W patients complaining?')">Why complaints on 5W?</span>
+    </div>
+
+    <div class="quick-prompts">
+      <strong style="font-size:12px;color:#9b59b6;margin-right:8px;align-self:center">✨ Live AI (needs key):</strong>
+      <span class="qp live" onclick="askAgent('What would be the operational impact if we lost 30% of our nursing staff to a flu outbreak?', true)">Flu hits 30% of nurses — impact?</span>
+      <span class="qp live" onclick="askAgent('How should we prepare bed capacity for a major weather event tomorrow?', true)">Prepare for weather event?</span>
+      <span class="qp live" onclick="askAgent('Compare our metrics to a top-decile US academic medical center.', true)">Compare to top decile?</span>
+      <span class="qp live" onclick="askAgent('What is the ROI of automating discharge planning?', true)">ROI of discharge automation?</span>
+    </div>
+
+    <div class="agent-input">
+      <textarea id="userQuery" placeholder="Ask anything... e.g. 'Which ward should I send my next admission to and why?'"></textarea>
+      <button id="askBtn" onclick="askAgent()">▶ Ask Agent</button>
+    </div>
+
+    <div class="ai-thinking" id="liveThinking">🧠 AI Agent reasoning across hospital data sources via Splunk MCP...</div>
+    <div class="ai-answer" id="liveAnswer"></div>
+  </div>
+
+  <!-- SCENARIO OUTPUT PANEL (hidden until a query runs) -->
+  <div class="panel" id="scenarioPanel" style="display:none">
+    <h2 id="scenarioTitle">Pre-Built Scenario Output</h2>
+    <div class="ai-thinking" id="aiThinking">🧠 AI Agent reasoning across systems via Splunk MCP...</div>
+    <div class="ai-answer" id="aiAnswer"></div>
+  </div>
+
+  <!-- SPLUNK MCP LIVE LAYER (hidden until a query runs) -->
+  <div class="panel mcp-panel" id="mcpPanel" style="display:none">
+    <h2>🔌 Splunk MCP Tool Layer — Live Query Execution</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:var(--muted)">
+      Watch the AI agent autonomously decide which data sources to query, generate SPL, execute against <code>index=hospital</code>, and reason over the results.
+    </p>
+    <div class="mcp-status">
+      <div class="mcp-stat"><span class="mcp-label">MCP Server</span><span class="mcp-val ok">● Connected</span></div>
+      <div class="mcp-stat"><span class="mcp-label">Index</span><span class="mcp-val">index=hospital</span></div>
+      <div class="mcp-stat"><span class="mcp-label">Tool</span><span class="mcp-val">splunk_run_query</span></div>
+      <div class="mcp-stat"><span class="mcp-label">Sources Indexed</span><span class="mcp-val">11 / 11</span></div>
+      <div class="mcp-stat"><span class="mcp-label">Events/min</span><span class="mcp-val" id="mcpEps">12,847</span></div>
+    </div>
+    <div id="mcpExecution" style="display:none">
+      <h4 style="color:var(--cisco-dark);margin:18px 0 10px">⚙️ Agent Reasoning Trace</h4>
+      <div id="mcpSteps"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Powered by Cisco Spaces + Splunk Platform + AI Agent Integration · Healthcare Demo · Benchmarks from CDC, AHRQ, OECD, HFMA
+</footer>
+
+<script>
+/* =========================================================================
+   HOSPITAL CONTEXT for Claude
+   ========================================================================= */
+const HOSPITAL_CONTEXT = `
+You are a healthcare operations AI agent for a 480-bed acute care hospital. You have real-time access via Splunk MCP to 11 unified data sources. Use these CURRENT live values to reason about questions:
+
+EHR (Epic): 412 active inpatients, 67 admissions today, 54 discharges today.
+BED MANAGEMENT: 84% overall occupancy, ICU at 91% (above 80% safety threshold), 78 beds available.
+EMERGENCY DEPT: 38 patients currently, 47 min avg wait (target 30), 218 min LOS, 12 boarders awaiting inpatient bed.
+IMAGING: MRI utilization 72%, CT utilization 88% with 23-scan backlog. 31% of CT orders are inappropriate per ACR.
+WORKFORCE: 142 nurses on shift, med-surg ratio 1:5.2, ICU ratio 1:1.8.
+INFECTION CONTROL: CAUTI 1.8/1000 cath-days, CLABSI 0.9/1000 line-days, SSI rate 2.7%. Ward 6E has a 3-case CLABSI cluster (expected 0.4) — hand hygiene 61% on that ward.
+PHARMACY/BCMA: 4,820 doses today, error rate 6.4/1k, 14 near-misses (9 on Ward 4N evenings — Pyxis latency 14 sec).
+SUPPLY CHAIN: PPE 18 days on hand, burn rate +22% (flu census +34), 3 critical meds at single-source risk.
+REVENUE CYCLE: 9.8% denial rate (top quartile <5%), 47 days in A/R, $2,873 cost/inpatient day, $4.2M annual leakage from one payer's medical necessity denials.
+RTLS (Cisco Spaces): 2,140 tracked assets, 892 staff badges, 412 patient tags. Ward 5W nurses spend 38% of shift on supply runs.
+PATIENT EXPERIENCE: 74% HCAHPS top-box hospital-wide. Ward 5W is 61% with 9.4 min call response (target <4 min, hospital avg 5.2).
+
+BENCHMARKS YOU KNOW: US 30-day readmission avg 15.3%, OECD bed occupancy 70-85%, ED 4-hr standard, top-decile claim denials <5%, days cash on hand healthy >150.
+
+Answer concisely. Always:
+1. State the diagnosis (root cause), drawing on >=2 data sources.
+2. Quantify impact in dollars, hours, or patients.
+3. Provide 3-4 prioritized recommendations (urgent / short-term / ongoing).
+4. Note which data sources you correlated.
+`;
+
+/* =========================================================================
+   API KEY MANAGEMENT
+   ========================================================================= */
+let apiKey = '';
+function saveKey(){
+  apiKey = document.getElementById('apiKey').value.trim();
+  const status = document.getElementById('keyStatus');
+  if(apiKey.startsWith('sk-ant-')){
+    status.textContent = '✓ Key saved for this session — never sent anywhere except Anthropic API';
+    status.className = 'status ok';
+  } else if(apiKey === ''){
+    status.textContent = 'No key — pattern-matched answers only';
+    status.className = 'status';
+  } else {
+    status.textContent = '⚠ Invalid key format (should start with sk-ant-)';
+    status.className = 'status';
+  }
+}
+
+/* =========================================================================
+   ANALYZING BANNER HELPERS
+   ========================================================================= */
+function showAnalyzingBanner(){
+  document.getElementById('analyzingBanner').classList.add('active');
+}
+function hideAnalyzingBanner(){
+  document.getElementById('analyzingBanner').classList.remove('active');
+}
+
+/* =========================================================================
+   DRAW RADIAL CONNECTIONS
+   ========================================================================= */
+function drawConnections(){
+  const svg = document.getElementById('connSvg');
+  const container = document.getElementById('ecosystem');
+  if(!svg || !container) return;
+  const rect = container.getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+  svg.innerHTML = '';
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+
+  document.querySelectorAll('.src-node').forEach(node => {
+    const nr = node.getBoundingClientRect();
+    const cr = container.getBoundingClientRect();
+    const nx = nr.left - cr.left + nr.width/2;
+    const ny = nr.top - cr.top + nr.height/2;
+
+    let stroke = '#1ba0d7';
+    if(node.classList.contains('clinical')) stroke = '#e74c3c';
+    else if(node.classList.contains('operations')) stroke = '#3498db';
+    else if(node.classList.contains('finance')) stroke = '#27ae60';
+    else if(node.classList.contains('experience')) stroke = '#9b59b6';
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', nx);
+    line.setAttribute('y1', ny);
+    line.setAttribute('x2', cx);
+    line.setAttribute('y2', cy);
+    line.setAttribute('stroke', stroke);
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', '4,4');
+    line.setAttribute('opacity', '0.45');
+    svg.appendChild(line);
+  });
+}
+window.addEventListener('resize', drawConnections);
+
+/* =========================================================================
+   PATTERN MATCHER
+   ========================================================================= */
+const patterns = [
+  {keywords:['ed backed up','ed surge','ed wait','triage to consult','ed boarding','emergency department surge','backed up'], scenario:'ed_surge'},
+  {keywords:['infection cluster','hai cluster','clabsi','cauti','infection outbreak','ssi rate','hospital-acquired infection','infection clusters'], scenario:'hai_outbreak'},
+  {keywords:['readmission risk','readmit risk','30-day readmission','30 day readmission','high readmission','readmission'], scenario:'readmission'},
+  {keywords:['medication error','med error','near miss','pyxis','bcma scan','medication errors'], scenario:'med_error'},
+  {keywords:['ct so backed','mri is idle','ct vs mri','imaging bottleneck','radiology bottleneck','ct backed up'], scenario:'resource'},
+  {keywords:['ppe stockout','ppe supply','supply stockout','reorder alert','medication shortage','stockout'], scenario:'supply'},
+  {keywords:['claim denial','claims denial','denial rate','rcm leakage','revenue cycle','claim denials'], scenario:'revenue'},
+  {keywords:['hcahps','call response','5w complaint','patient complaint','patient satisfaction','5w','complaining'], scenario:'experience'}
+];
+
+function matchPattern(query){
+  const q = query.toLowerCase();
+  for(const p of patterns){
+    if(p.keywords.some(k => q.includes(k))) return p.scenario;
+  }
+  return null;
+}
+
+/* =========================================================================
+   SCENARIO LIBRARY
+   ========================================================================= */
+const scenarios = {
+  ed_surge:{
+    title:"🚨 ED Surge & Patient Flow Bottleneck",
+    answer:"<h3>Unified AI Diagnosis</h3><p>The ED is experiencing a surge: 38 patients waiting (vs. baseline 22), with average triage-to-consult of <b>47 minutes</b> — well above the 30-min target. Root cause is not ED understaffing, but a downstream <b>inpatient bed bottleneck</b>: 12 admitted ED patients are boarding because med-surg is at 84% and ICU at 91% occupancy. Two discharge orders from 9:00 AM remain un-actioned (housekeeping turnaround averaging 94 min vs. 45 min target).</p>",
+    data:[
+      {h:"ED Patients Now",v:"38",d:"+73% vs baseline",cls:"up"},
+      {h:"Triage→Consult",v:"47 min",d:"Target: 30 min",cls:"up"},
+      {h:"ED Boarders",v:"12",d:"Awaiting inpatient bed",cls:"up"},
+      {h:"Bed Turnover",v:"94 min",d:"Target: 45 min",cls:"up"},
+      {h:"ICU Occupancy",v:"91%",d:"Above 80% safety threshold",cls:"up"},
+      {h:"Pending Discharges",v:"7",d:"Orders written, not executed",cls:"flat"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Activate Discharge Lounge protocol — move 7 stable discharge-ready patients to free beds within 30 min"},
+      {t:"warn",txt:"Page EVS team to prioritize 4N and 5W bed turnovers (auto-ticket created in ServiceNow)"},
+      {t:"",txt:"Recommend escalating 2 stable telemetry patients from ICU to step-down to relieve pressure"},
+      {t:"",txt:"Predictive model: surge will peak in 90 min — pre-position float pool nurse to ED Zone B"}
+    ],
+    kpis:[["73%","Above ED Baseline"],["12","Boarders Identified"],["90 min","Time Saved per Discharge"],["$48K","Daily Boarding Cost Avoided"]]
+  },
+  hai_outbreak:{
+    title:"🦠 Hospital-Acquired Infection Cluster Detection",
+    answer:"<h3>Unified AI Diagnosis</h3><p>AI detected a <b>statistically significant CLABSI cluster</b> on Ward 6E: 3 cases in 14 days vs. expected 0.4. Correlating EHR, RTLS staff movement, and antibiotic-stewardship data: all 3 patients shared a central line inserted by the same procedural team during night shift, and RTLS shows hand-hygiene station compliance dropped to 61% on that ward (target ≥ 90%) over the same period.</p>",
+    data:[
+      {h:"CLABSI Cases (14d)",v:"3",d:"Expected: 0.4",cls:"up"},
+      {h:"Ward 6E Hand Hygiene",v:"61%",d:"Target: 90%",cls:"up"},
+      {h:"Common Insertion Team",v:"Yes",d:"All 3 cases — night shift",cls:"up"},
+      {h:"CLABSI Rate Building-Wide",v:"0.9/1k",d:"Within benchmark",cls:"flat"},
+      {h:"Antibiotic DDD",v:"+18%",d:"Ward 6E vs. baseline",cls:"up"},
+      {h:"Statistical Confidence",v:"96%",d:"NHSN SIR > 2.5",cls:"up"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Immediately re-credential night-shift line insertion team — competency reassessment within 24h"},
+      {t:"urgent",txt:"Deploy IPC observer to Ward 6E for 7 days; activate CHG bath audit protocol"},
+      {t:"warn",txt:"Auto-notify CMO, CNO, IPC lead via ServiceNow incident INC-HAI-2026-0114"},
+      {t:"",txt:"Estimated avoided cost of 1 prevented CLABSI: $48,000 + 10.4 added LOS days"}
+    ],
+    kpis:[["96%","Cluster Confidence"],["3","Cases Detected Early"],["$144K","Avoidable Cost Exposure"],["7 days","Earlier Than Manual Review"]]
+  },
+  readmission:{
+    title:"🔁 30-Day Readmission Risk Prediction",
+    answer:"<h3>Unified AI Diagnosis</h3><p>Of 54 patients discharged today, AI flags <b>11 (20.4%)</b> as high-risk for 30-day readmission — above the 15.3% national benchmark. Top contributors are CHF patients with no scheduled follow-up within 7 days, and 4 patients discharged without medication reconciliation completion. 6 of the 11 lack reliable transportation per the discharge planner's note field.</p>",
+    data:[
+      {h:"Discharges Today",v:"54",d:"Within normal range",cls:"flat"},
+      {h:"High-Risk Flagged",v:"11",d:"20.4% (benchmark 15.3%)",cls:"up"},
+      {h:"Missing Med Rec",v:"4",d:"Auto-flag to pharmacy",cls:"up"},
+      {h:"No 7-day Follow-up",v:"7",d:"CHF / COPD cohort",cls:"up"},
+      {h:"SDOH Risk Flag",v:"6",d:"Transport / housing",cls:"up"},
+      {h:"Predicted Readmits",v:"~5",d:"If no intervention",cls:"up"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Auto-schedule telehealth follow-up within 48h for 7 patients lacking PCP appointment"},
+      {t:"warn",txt:"Pharmacy alert: complete med reconciliation for 4 patients before discharge release"},
+      {t:"",txt:"Engage community health worker for 6 SDOH-risk patients (transport vouchers, home visit)"},
+      {t:"",txt:"Estimated cost avoidance: 5 prevented readmissions × $14,400 = $72,000"}
+    ],
+    kpis:[["20.4%","Risk Predicted Today"],["11","Patients Identified"],["$72K","Avoidable Readmit Cost"],["48h","Window for Intervention"]]
+  },
+  med_error:{
+    title:"💊 Medication Error Pattern Analysis",
+    answer:"<h3>Unified AI Diagnosis</h3><p>AI detected a <b>recurring near-miss pattern</b>: 14 near-miss events in 7 days, 9 of them on Ward 4N during 19:00–22:00 shift handover. Root cause correlation: BCMA scan-rate drops from 96% (day) to 81% (evening) on this ward, coinciding with a known Pyxis cabinet whose interface latency averages 14 seconds (vs. 2s elsewhere). Nurses are bypassing the scanner due to workflow friction, not negligence.</p>",
+    data:[
+      {h:"Near-Miss Events (7d)",v:"14",d:"+40% vs prior week",cls:"up"},
+      {h:"Ward 4N Concentration",v:"64%",d:"9 of 14 events",cls:"up"},
+      {h:"BCMA Scan Rate (PM)",v:"81%",d:"Target ≥ 95%",cls:"up"},
+      {h:"Pyxis 4N-A Latency",v:"14 sec",d:"Avg elsewhere: 2 sec",cls:"up"},
+      {h:"Med Error Rate",v:"6.4/1k",d:"Benchmark: 5–10/1k",cls:"flat"},
+      {h:"Patient Harm Events",v:"0",d:"All caught before admin",cls:"down"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Replace/upgrade Pyxis 4N-A controller — auto WO created with biomed engineering"},
+      {t:"warn",txt:"Add 1 additional pharmacy tech to Ward 4N evening shift for 14-day pilot"},
+      {t:"",txt:"Schedule BCMA workflow refresher with 4N nurses; share root-cause findings (no blame)"},
+      {t:"",txt:"Splunk auto-monitoring rule deployed for scan-rate < 90% on any ward"}
+    ],
+    kpis:[["14","Near-Misses Detected"],["0","Patient Harm"],["96%","RCA Confidence"],["$0","Spent on Hardware Yet"]]
+  },
+  resource:{
+    title:"🩻 MRI/CT Bottleneck & Resource Optimization",
+    answer:"<h3>Unified AI Diagnosis</h3><p>CT is at 88% utilization with a 23-scan backlog, while MRI sits at 72% with capacity available. Root cause: 31% of CT orders are <b>inappropriate first-line imaging</b> per ACR guidelines — many neurology cases should route to MRI first. Additionally, RTLS shows transport delays averaging 22 min between ward and CT (target 10 min) due to a single porter team covering 4 floors during 14:00–18:00.</p>",
+    data:[
+      {h:"CT Utilization",v:"88%",d:"23-scan backlog",cls:"up"},
+      {h:"MRI Utilization",v:"72%",d:"Capacity available",cls:"down"},
+      {h:"CT Inappropriate Orders",v:"31%",d:"Per ACR criteria",cls:"up"},
+      {h:"Transport Delay",v:"22 min",d:"Target: 10 min",cls:"up"},
+      {h:"Avg CT Wait",v:"4.1 hr",d:"From order to scan",cls:"up"},
+      {h:"Revenue at Risk",v:"$18K/day",d:"Idle MRI capacity",cls:"up"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Implement CDS rule in EHR: prompt clinician toward MRI for neuro indications meeting ACR criteria"},
+      {t:"warn",txt:"Add 1 porter to floors 4–7 during 14:00–18:00 (predicted ROI: 38% wait reduction)"},
+      {t:"",txt:"Open MRI evening slots (18:00–22:00) for non-urgent outpatient overflow"},
+      {t:"",txt:"Estimated annualized capacity recovery: 1,840 additional billable MRI scans"}
+    ],
+    kpis:[["23","CT Backlog Cleared"],["38%","Wait Time Reduction"],["$1.8M","Annualized MRI Revenue"],["72%→85%","MRI Target Util"]]
+  },
+  supply:{
+    title:"📦 PPE & Medication Supply Chain Alert",
+    answer:"<h3>Unified AI Diagnosis</h3><p>Current PPE on hand: 18 days. Burn rate has accelerated <b>22% over 14 days</b>, correlating with the rising flu census (+34 admits this week). At current trajectory, N95 supply will hit critical threshold (7 days) in <b>9 days</b>. Simultaneously, 3 critical medications are at single-source supplier risk per FDA Drug Shortage list. Auto-reorder triggered and alternate suppliers identified.</p>",
+    data:[
+      {h:"PPE Days on Hand",v:"18",d:"Critical threshold: 7",cls:"up"},
+      {h:"Burn Rate Increase",v:"+22%",d:"vs. 14-day baseline",cls:"up"},
+      {h:"Flu Census",v:"+34",d:"Driving PPE demand",cls:"up"},
+      {h:"Critical Med Risk",v:"3",d:"Single-source / shortage list",cls:"up"},
+      {h:"Auto-Reorders Sent",v:"5",d:"Including alt suppliers",cls:"down"},
+      {h:"Stockout Probability",v:"<2%",d:"With current actions",cls:"down"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Activate alternate suppliers for vancomycin and norepinephrine (PO drafts ready in Workday)"},
+      {t:"warn",txt:"Increase N95 PAR level by 30% for next 30 days while flu season active"},
+      {t:"",txt:"Notify nursing leadership of conservation protocol — extended-use guidance per CDC"},
+      {t:"",txt:"Predictive model retrains nightly using ED census + community flu surveillance feed"}
+    ],
+    kpis:[["9 days","Lead Time Gained"],["3","Critical Meds Secured"],["<2%","Stockout Risk"],["$0","Emergency Buy Premium"]]
+  },
+  revenue:{
+    title:"💳 Claims Denial Root Cause Analysis",
+    answer:"<h3>Unified AI Diagnosis</h3><p>Claim denial rate is 9.8% (industry avg 5–10%, top quartile <5%). AI correlation across EHR, charge capture, and payer responses identifies the dominant cause: <b>62% of denials are 'medical necessity' rejections from a single payer</b> for inpatient observation conversions, traceable to incomplete documentation in the H&P note for short-stay admissions. Estimated annual leakage: $4.2M.</p>",
+    data:[
+      {h:"Denial Rate",v:"9.8%",d:"Top quartile: <5%",cls:"up"},
+      {h:"Top Denial Reason",v:"62%",d:"Medical necessity (Payer X)",cls:"up"},
+      {h:"Days in A/R",v:"47",d:"Benchmark: 40",cls:"up"},
+      {h:"Annual Leakage",v:"$4.2M",d:"Recoverable via documentation",cls:"up"},
+      {h:"Affected Encounters",v:"284/mo",d:"Short-stay observation",cls:"up"},
+      {h:"Recovery Rate (current)",v:"34%",d:"After appeal",cls:"flat"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Deploy CDI (Clinical Documentation Improvement) prompt in EHR for short-stay admissions"},
+      {t:"warn",txt:"Re-engage Payer X contracting team — 12-month denial pattern warrants renegotiation"},
+      {t:"",txt:"Train hospitalists on InterQual / MCG criteria documentation (4-hour module)"},
+      {t:"",txt:"Projected 1st-pass denial drop: 9.8% → 6.2% within 90 days; recovered: ~$2.8M annualized"}
+    ],
+    kpis:[["$4.2M","Annual Leakage"],["62%","Single Root Cause"],["$2.8M","Projected Recovery"],["90 days","To Impact"]]
+  },
+  experience:{
+    title:"⭐ Patient Experience & Call Response",
+    answer:"<h3>Unified AI Diagnosis</h3><p>Hospital-wide HCAHPS top-box is 74%, but Ward 5W is dragging the score: 61% top-box and call-response time of 9.4 min (vs. 5.2 min hospital average; target <4 min). Cross-system correlation reveals 5W has 7 nurses covering 38 patients (1:5.4 ratio) but their RTLS movement data shows 38% of shift time spent on supply runs to a centralized clean utility room two floors away — a workflow problem, not a staffing problem.</p>",
+    data:[
+      {h:"5W Call Response",v:"9.4 min",d:"Target: <4 min",cls:"up"},
+      {h:"5W HCAHPS",v:"61%",d:"Hospital avg: 74%",cls:"up"},
+      {h:"Time on Supply Runs",v:"38%",d:"vs. 12% other wards",cls:"up"},
+      {h:"Nurse:Patient Ratio",v:"1:5.4",d:"Within policy",cls:"flat"},
+      {h:"Call Volume",v:"284/shift",d:"Above-avg acuity",cls:"up"},
+      {h:"Complaint Themes",v:"'Slow to respond'",d:"6 of 9 last week",cls:"up"}
+    ],
+    recs:[
+      {t:"urgent",txt:"Establish 5W satellite supply alcove on the ward (capex ~$28K) — model predicts response time → 4.6 min"},
+      {t:"warn",txt:"Reassign 1 patient-care tech to 5W evening shift to absorb supply runs"},
+      {t:"",txt:"Pilot voice-activated call routing on Cisco devices for 5W (auto-prioritize by acuity)"},
+      {t:"",txt:"Projected HCAHPS lift: 61% → 72% within 60 days; CMS VBP impact ~$340K annualized"}
+    ],
+    kpis:[["9.4→4.6","Min Response Target"],["38%→12%","Supply Run Time"],["+11pts","HCAHPS Projected"],["$340K","VBP Recovery"]]
+  }
+};
+
+/* =========================================================================
+   MOCK SPLUNK MCP LAYER
+   ========================================================================= */
+const SPLUNK_FIXTURES = {
+  ed_census: {
+    spl: `index=hospital sourcetype=ed_tracking earliest=-1h
+| stats count AS patients_now, avg(wait_minutes) AS avg_wait,
+        avg(triage_to_consult_min) AS triage_consult,
+        sum(eval(status="boarding")) AS boarders BY zone`,
+    rows: [
+      {zone:"Zone A (Acute)", patients_now:14, avg_wait:52, triage_consult:51, boarders:5},
+      {zone:"Zone B (Urgent)", patients_now:18, avg_wait:43, triage_consult:44, boarders:6},
+      {zone:"Zone C (Fast Track)", patients_now:6, avg_wait:21, triage_consult:18, boarders:1}
+    ],
+    meta:"3 results · scanned 4,217 events · 0.412s"
+  },
+  bed_occupancy: {
+    spl: `index=hospital sourcetype=bed_mgmt
+| stats latest(occupancy_pct) AS occupancy, count AS units BY ward, ward_type
+| sort -occupancy`,
+    rows: [
+      {ward:"ICU-3", ward_type:"Critical Care", occupancy:91, units:24},
+      {ward:"6E Med-Surg", ward_type:"Medical", occupancy:88, units:32},
+      {ward:"5W Med-Surg", ward_type:"Medical", occupancy:84, units:28},
+      {ward:"4N Surgical", ward_type:"Surgical", occupancy:79, units:30},
+      {ward:"3S Telemetry", ward_type:"Cardiac", occupancy:71, units:22}
+    ],
+    meta:"5 results · scanned 1,840 events · 0.218s"
+  },
+  staffing: {
+    spl: `index=hospital sourcetype=workforce_mgmt earliest=-30m
+| stats values(role) AS roles, count AS staff_count,
+        avg(patient_load) AS avg_load BY ward, shift`,
+    rows: [
+      {ward:"ICU-3", shift:"Day", staff_count:14, avg_load:1.8, roles:"RN, RT, MD"},
+      {ward:"6E", shift:"Day", staff_count:7, avg_load:5.4, roles:"RN, PCT"},
+      {ward:"5W", shift:"Day", staff_count:7, avg_load:5.2, roles:"RN, PCT"},
+      {ward:"ED", shift:"Day", staff_count:22, avg_load:3.1, roles:"RN, MD, Tech"}
+    ],
+    meta:"4 results · scanned 892 events · 0.187s"
+  },
+  infections: {
+    spl: `index=hospital sourcetype=infection_control earliest=-14d
+| stats count AS cases, avg(line_days) AS line_days BY ward, infection_type
+| eval rate_per_1k=round(cases/(line_days*0.001),2)
+| where rate_per_1k > 0`,
+    rows: [
+      {ward:"6E", infection_type:"CLABSI", cases:3, line_days:1670, rate_per_1k:1.80},
+      {ward:"ICU-3", infection_type:"CAUTI", cases:2, line_days:1240, rate_per_1k:1.61},
+      {ward:"4N", infection_type:"SSI", cases:1, line_days:0, rate_per_1k:2.70}
+    ],
+    meta:"3 results · scanned 218 events · 0.143s"
+  },
+  rtls_hand_hygiene: {
+    spl: `index=hospital sourcetype=cisco_spaces_rtls event=hand_hygiene_dispense earliest=-14d
+| stats count AS dispenses, dc(badge_id) AS unique_staff,
+        avg(compliance_pct) AS avg_compliance BY ward`,
+    rows: [
+      {ward:"ICU-3", dispenses:14820, unique_staff:88, avg_compliance:94},
+      {ward:"5W", dispenses:8214, unique_staff:42, avg_compliance:89},
+      {ward:"6E", dispenses:5108, unique_staff:38, avg_compliance:61},
+      {ward:"4N", dispenses:7934, unique_staff:41, avg_compliance:91}
+    ],
+    meta:"4 results · scanned 36,076 events · 0.512s"
+  },
+  pharmacy: {
+    spl: `index=hospital sourcetype=bcma earliest=-7d
+| stats count AS doses, sum(eval(scan_success=1)) AS scanned,
+        sum(eval(near_miss=1)) AS near_misses BY ward, shift
+| eval scan_rate=round((scanned/doses)*100,1)`,
+    rows: [
+      {ward:"4N", shift:"Day", doses:1240, scanned:1190, near_misses:2, scan_rate:96.0},
+      {ward:"4N", shift:"Evening", doses:980, scanned:794, near_misses:9, scan_rate:81.0},
+      {ward:"6E", shift:"Day", doses:1180, scanned:1133, near_misses:1, scan_rate:96.0},
+      {ward:"5W", shift:"Day", doses:1090, scanned:1057, near_misses:2, scan_rate:97.0}
+    ],
+    meta:"4 results · scanned 4,820 events · 0.298s"
+  },
+  imaging: {
+    spl: `index=hospital sourcetype=ris_pacs earliest=-1d
+| stats count AS scans, avg(util_pct) AS utilization,
+        sum(eval(status="pending")) AS backlog BY modality`,
+    rows: [
+      {modality:"CT", scans:142, utilization:88, backlog:23},
+      {modality:"MRI", scans:88, utilization:72, backlog:4},
+      {modality:"X-Ray", scans:284, utilization:64, backlog:2},
+      {modality:"US", scans:97, utilization:71, backlog:6}
+    ],
+    meta:"4 results · scanned 611 events · 0.172s"
+  },
+  supply_chain: {
+    spl: `index=hospital sourcetype=supply_inventory
+| stats latest(days_on_hand) AS doh, latest(burn_rate_pct) AS burn,
+        latest(par_level) AS par BY item_category
+| where doh < 30`,
+    rows: [
+      {item_category:"N95 Respirators", doh:18, burn:122, par:25},
+      {item_category:"Surgical Masks", doh:24, burn:108, par:30},
+      {item_category:"Vancomycin", doh:11, burn:98, par:14},
+      {item_category:"Norepinephrine", doh:9, burn:104, par:14},
+      {item_category:"Propofol", doh:13, burn:101, par:18}
+    ],
+    meta:"5 results · scanned 1,247 events · 0.231s"
+  },
+  rcm: {
+    spl: `index=hospital sourcetype=revenue_cycle earliest=-90d
+| stats count AS claims, sum(eval(denied=1)) AS denials,
+        sum(denied_amount) AS leakage BY payer, denial_reason
+| eval denial_rate=round((denials/claims)*100,1)
+| sort -leakage`,
+    rows: [
+      {payer:"Payer X", denial_reason:"Medical Necessity", claims:842, denials:284, leakage:1240000, denial_rate:33.7},
+      {payer:"Payer Y", denial_reason:"Coding Error", claims:1184, denials:71, leakage:340000, denial_rate:6.0},
+      {payer:"Medicare", denial_reason:"Documentation", claims:2104, denials:84, leakage:280000, denial_rate:4.0}
+    ],
+    meta:"3 results · scanned 4,130 events · 0.387s"
+  },
+  hcahps: {
+    spl: `index=hospital sourcetype=patient_experience earliest=-30d
+| stats avg(top_box_pct) AS top_box,
+        avg(call_response_min) AS call_response,
+        count AS surveys BY ward`,
+    rows: [
+      {ward:"ICU-3", top_box:81, call_response:3.2, surveys:42},
+      {ward:"4N", top_box:78, call_response:4.8, surveys:88},
+      {ward:"6E", top_box:73, call_response:5.1, surveys:91},
+      {ward:"5W", top_box:61, call_response:9.4, surveys:74}
+    ],
+    meta:"4 results · scanned 295 events · 0.198s"
+  }
+};
+
+const QUERY_PLANS = {
+  ed_surge: {
+    plan: "User asked about ED throughput. I need to: (1) check current ED census and wait times, (2) check inpatient bed availability to find downstream bottlenecks, (3) check staffing levels.",
+    queries: ['ed_census', 'bed_occupancy', 'staffing']
+  },
+  hai_outbreak: {
+    plan: "User asked about infection clusters. I need to: (1) pull infection rates by ward over the last 14 days, (2) cross-reference with RTLS hand-hygiene compliance data, (3) check pharmacy antibiotic usage as a corroborating signal.",
+    queries: ['infections', 'rtls_hand_hygiene', 'pharmacy']
+  },
+  readmission: {
+    plan: "User asked about readmission risk. I need to: (1) check today's discharge cohort and bed occupancy, (2) check staffing, (3) cross-reference HCAHPS patterns by ward.",
+    queries: ['bed_occupancy', 'staffing', 'hcahps']
+  },
+  med_error: {
+    plan: "User asked about medication errors. I need to: (1) pull BCMA scan rates and near-miss events by ward and shift, (2) check infection rates as a sanity baseline, (3) check staffing levels during evening shift.",
+    queries: ['pharmacy', 'staffing', 'infections']
+  },
+  resource: {
+    plan: "User asked about imaging bottlenecks. I need to: (1) pull modality utilization and backlogs from RIS/PACS, (2) check ED census (since ED drives a lot of CT volume), (3) check staffing.",
+    queries: ['imaging', 'ed_census', 'staffing']
+  },
+  supply: {
+    plan: "User asked about supply chain risk. I need to: (1) pull current inventory days-on-hand and burn rates, (2) check ED census (drives PPE consumption), (3) check infection rates (drives med usage).",
+    queries: ['supply_chain', 'ed_census', 'infections']
+  },
+  revenue: {
+    plan: "User asked about claims denials. I need to: (1) aggregate denial rates by payer and reason from RCM, (2) cross-reference with bed occupancy patterns (short-stay vs inpatient), (3) check HCAHPS to rule out experience-driven complaints.",
+    queries: ['rcm', 'bed_occupancy', 'hcahps']
+  },
+  experience: {
+    plan: "User asked about patient experience. I need to: (1) pull HCAHPS top-box and call-response by ward, (2) check staffing ratios, (3) check RTLS data to understand staff movement patterns.",
+    queries: ['hcahps', 'staffing', 'rtls_hand_hygiene']
+  },
+  default: {
+    plan: "Novel query — performing broad correlation across operational, clinical, and financial sources.",
+    queries: ['bed_occupancy', 'ed_census', 'staffing', 'hcahps']
+  }
+};
+
+function highlightSPL(spl){
+  return spl
+    .replace(/(\b(?:index|sourcetype|earliest|stats|count|avg|sum|by|where|eval|sort|values|dc|latest|round|as)\b)/gi, '<span class="kw">$1</span>')
+    .replace(/("[^"]*")/g, '<span class="str">$1</span>')
+    .replace(/\b(\d+)\b/g, '<span class="num">$1</span>')
+    .replace(/(\/\/.*$|#.*$)/gm, '<span class="cmt">$1</span>');
+}
+
+function renderSplResult(fixture){
+  if(!fixture.rows.length) return '<div class="spl-result">No results</div>';
+  const cols = Object.keys(fixture.rows[0]);
+  let html = `<div class="spl-result"><div class="meta">${fixture.meta}</div><table><thead><tr>`;
+  cols.forEach(c => html += `<th>${c}</th>`);
+  html += '</tr></thead><tbody>';
+  fixture.rows.forEach(row => {
+    html += '<tr>';
+    cols.forEach(c => html += `<td>${row[c]}</td>`);
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function mcpAddStep(html, cssClass){
+  const container = document.getElementById('mcpSteps');
+  const step = document.createElement('div');
+  step.className = `mcp-step ${cssClass||''}`;
+  step.innerHTML = html;
+  container.appendChild(step);
+  requestAnimationFrame(()=>step.classList.add('show'));
+  return step;
+}
+
+function mcpClear(){
+  document.getElementById('mcpSteps').innerHTML = '';
+  document.getElementById('mcpExecution').style.display = 'block';
+  // Reveal the MCP panel (hidden on load) so queries appear FIRST
+  document.getElementById('mcpPanel').style.display = 'block';
+}
+
+function timestamp(){
+  const d = new Date();
+  return d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3,'0');
+}
+
+function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function runMcpAgentLoop(query, scenarioKey){
+  // Show the subtle banner over the ecosystem first
+  showAnalyzingBanner();
+  await delay(1100);  // let the audience read it briefly
+
+  mcpClear();
+  // Banner fades out as the MCP panel takes over
+  hideAnalyzingBanner();
+
+  // Auto-scroll to MCP panel so users watch the queries execute FIRST
+  document.getElementById('mcpPanel').scrollIntoView({behavior:'smooth', block:'start'});
+
+  const plan = QUERY_PLANS[scenarioKey] || QUERY_PLANS.default;
+
+  mcpAddStep(
+    `<div class="mcp-step-header">
+       <span class="mcp-step-title">🧭 Step 1 · Agent Planning</span>
+       <span class="mcp-step-time">${timestamp()}</span>
+     </div>
+     <div class="mcp-step-body">${plan.plan}</div>`,
+    'thinking'
+  );
+  await delay(900);
+
+  let aggregatedResults = '';
+  for(let i = 0; i < plan.queries.length; i++){
+    const qKey = plan.queries[i];
+    const fixture = SPLUNK_FIXTURES[qKey];
+    if(!fixture) continue;
+
+    const execStep = mcpAddStep(
+      `<div class="mcp-step-header">
+         <span class="mcp-step-title">⚡ Step ${i+2} · Calling Splunk MCP — <code>splunk_run_query</code></span>
+         <span class="mcp-step-time">${timestamp()}</span>
+       </div>
+       <div class="mcp-step-body">
+         <div class="spl-query">${highlightSPL(fixture.spl)}</div>
+         <div><span class="mcp-spinner"></span>Executing against index=hospital...</div>
+       </div>`,
+      'executing'
+    );
+    await delay(700 + Math.random()*500);
+
+    execStep.className = 'mcp-step complete show';
+    execStep.innerHTML =
+      `<div class="mcp-step-header">
+         <span class="mcp-step-title">✅ Step ${i+2} · Splunk Result Received</span>
+         <span class="mcp-step-time">${timestamp()}</span>
+       </div>
+       <div class="mcp-step-body">
+         <div class="spl-query">${highlightSPL(fixture.spl)}</div>
+         ${renderSplResult(fixture)}
+       </div>`;
+
+    aggregatedResults += `\n\n--- Splunk Query ${i+1} (${qKey}) ---\nSPL:\n${fixture.spl}\nResults:\n${JSON.stringify(fixture.rows, null, 2)}\n`;
+    await delay(400);
+  }
+
+  mcpAddStep(
+    `<div class="mcp-step-header">
+       <span class="mcp-step-title">🧠 Step ${plan.queries.length+2} · Reasoning Over Aggregated Results</span>
+       <span class="mcp-step-time">${timestamp()}</span>
+     </div>
+     <div class="mcp-step-body">
+       Correlating ${plan.queries.length} Splunk result sets · Building hypothesis · Generating recommendations...
+     </div>`,
+    'thinking'
+  );
+  await delay(600);
+
+  return aggregatedResults;
+}
+
+setInterval(()=>{
+  const el = document.getElementById('mcpEps');
+  if(el){
+    const base = 12500;
+    const jitter = Math.floor(Math.random() * 800);
+    el.textContent = (base + jitter).toLocaleString();
+  }
+}, 2000);
+
+/* =========================================================================
+   RENDERERS
+   ========================================================================= */
+function renderData(arr){
+  return '<div class="data-grid">' + arr.map(d =>
+    `<div class="data-card"><h5>${d.h}</h5><div class="val">${d.v}</div><div class="delta ${d.cls}">${d.d}</div></div>`
+  ).join('') + '</div>';
+}
+function renderRecs(arr){
+  return '<div class="recommendations"><h4>Recommended Actions</h4>' + arr.map(r =>
+    `<div class="rec ${r.t}">${r.txt}</div>`
+  ).join('') + '</div>';
+}
+function renderKpis(arr){
+  return '<div class="kpi-strip">' + arr.map(k =>
+    `<div class="kpi"><div class="num">${k[0]}</div><div class="lbl">${k[1]}</div></div>`
+  ).join('') + '</div>';
+}
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* =========================================================================
+   PRE-BUILT SCENARIO HANDLER — queries FIRST, then reveal result
+   ========================================================================= */
+async function runScenario(){
+  const key = document.getElementById('scenarioSelect').value;
+  const s = scenarios[key];
+
+  const scenarioPanel = document.getElementById('scenarioPanel');
+  scenarioPanel.style.display = 'none';
+  document.getElementById('aiAnswer').classList.remove('active');
+
+  await runMcpAgentLoop(s.title, key);
+
+  scenarioPanel.style.display = 'block';
+  document.getElementById('scenarioTitle').innerText = s.title;
+  document.getElementById('aiThinking').classList.remove('active');
+  document.getElementById('aiAnswer').innerHTML =
+    '<span class="source-tag">PRE-BUILT SCENARIO · GROUNDED IN SPLUNK MCP RESULTS</span>' +
+    s.answer + renderData(s.data) + renderRecs(s.recs) + renderKpis(s.kpis);
+  document.getElementById('aiAnswer').classList.add('active');
+  scenarioPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* =========================================================================
+   LIVE AGENT — queries FIRST, then reveal result
+   ========================================================================= */
+async function askAgent(presetQuery, forceLive){
+  const queryEl = document.getElementById('userQuery');
+  const query = (presetQuery || queryEl.value).trim();
+  if(!query){ alert('Please enter a question'); return; }
+  if(presetQuery) queryEl.value = presetQuery;
+
+  const thinking = document.getElementById('liveThinking');
+  const answer = document.getElementById('liveAnswer');
+  const btn = document.getElementById('askBtn');
+
+  thinking.classList.add('active');
+  answer.classList.remove('active');
+  btn.disabled = true;
+
+  if(!forceLive){
+    const matched = matchPattern(query);
+    if(matched){
+      const s = scenarios[matched];
+      await runMcpAgentLoop(query, matched);
+      thinking.classList.remove('active');
+      answer.innerHTML =
+        '<span class="source-tag">PATTERN-MATCHED · GROUNDED IN SPLUNK MCP RESULTS</span>' +
+        `<p style="font-size:12px;color:var(--muted);margin-top:0"><b>Your question:</b> "${escapeHtml(query)}"</p>` +
+        s.answer + renderData(s.data) + renderRecs(s.recs) + renderKpis(s.kpis);
+      answer.classList.add('active');
+      btn.disabled = false;
+      document.querySelector('.live-agent').scrollIntoView({behavior:'smooth', block:'start'});
+      return;
+    }
+  }
+
+  if(!apiKey){
+    hideAnalyzingBanner();
+    setTimeout(()=>{
+      thinking.classList.remove('active');
+      answer.innerHTML =
+        '<span class="source-tag" style="background:var(--warn)">API KEY REQUIRED</span>' +
+        `<h3>This question needs the live AI reasoning engine</h3>
+         <p><b>Your question:</b> "<i>${escapeHtml(query)}</i>"</p>
+         <p>This is a novel/strategic question that requires Claude's live reasoning over the hospital data context. To enable it:</p>
+         <ol>
+           <li>Get a Claude API key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></li>
+           <li>Paste it into the API key bar at the top of the page → click <b>Save Key</b></li>
+           <li>Click the same purple chip again</li>
+         </ol>
+         <p style="margin-top:12px;font-size:12px;color:var(--muted)">💡 Or try one of the <b>blue pattern-matched chips</b> — they work instantly without a key.</p>`;
+      answer.classList.add('active');
+      btn.disabled = false;
+    }, 600);
+    return;
+  }
+
+  try {
+    thinking.innerHTML = '🔌 Invoking Splunk MCP tools to gather live hospital data...';
+    const splunkResults = await runMcpAgentLoop(query, 'default');
+    thinking.innerHTML = '🧠 Querying Claude API with Splunk MCP results as grounding context...';
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1500,
+        system: HOSPITAL_CONTEXT + `\n\n=== LIVE SPLUNK MCP QUERY RESULTS ===\nThe following data was just retrieved from index=hospital via splunk_run_query MCP tool calls. Use it as the authoritative ground truth for this question:\n${splunkResults}`,
+        messages: [{ role: 'user', content: query }],
+        stream: true
+      })
+    });
+
+    if(!response.ok){
+      const errText = await response.text();
+      throw new Error(`API ${response.status}: ${errText}`);
+    }
+
+    thinking.classList.remove('active');
+    answer.innerHTML =
+      '<span class="source-tag live">✨ LIVE CLAUDE API · GROUNDED IN SPLUNK MCP RESULTS · STREAMING</span>' +
+      `<p style="font-size:12px;color:var(--muted);margin-top:0"><b>Your question:</b> "${escapeHtml(query)}"</p>` +
+      `<div id="streamTarget" style="white-space:pre-wrap;line-height:1.6;font-size:14px;min-height:24px"></div>` +
+      `<span id="streamCursor" style="display:inline-block;width:8px;height:16px;background:var(--cisco);margin-left:2px;vertical-align:text-bottom;animation:blink 1s infinite"></span>` +
+      `<div class="data-context" style="margin-top:14px"><strong>Data sources provided to AI:</strong> EHR (Epic) · Bed Mgmt · ED Tracking · RIS/PACS · Workforce · IPC · Pharmacy/BCMA · Supply Chain · RCM · Cisco Spaces RTLS · HCAHPS — 11 unified via Splunk MCP</div>`;
+    answer.classList.add('active');
+    document.querySelector('.live-agent').scrollIntoView({behavior:'smooth', block:'start'});
+
+    const target = document.getElementById('streamTarget');
+    const cursor = document.getElementById('streamCursor');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if(!payload || payload === '[DONE]') continue;
+
+        try {
+          const event = JSON.parse(payload);
+          if(event.type === 'content_block_delta' && event.delta?.type === 'text_delta'){
+            const chunk = event.delta.text;
+            fullText += chunk;
+            target.textContent = fullText;
+          } else if(event.type === 'error'){
+            throw new Error(event.error?.message || 'Stream error');
+          }
+        } catch(parseErr){
+          console.warn('Stream parse warning:', parseErr.message);
+        }
+      }
+    }
+
+    if(cursor) cursor.remove();
+
+  } catch(e) {
+    hideAnalyzingBanner();
+    thinking.classList.remove('active');
+    answer.innerHTML =
+      '<span class="source-tag" style="background:var(--bad)">API ERROR</span>' +
+      `<h3>Could not reach Claude API</h3>
+       <p><b>Error:</b> ${escapeHtml(e.message)}</p>
+       <p>Common causes:</p>
+       <ul>
+         <li>Invalid API key (must start with <code>sk-ant-</code>)</li>
+         <li>Network or CORS issue</li>
+         <li>Model name mismatch — try changing <code>claude-sonnet-4-5</code> in the code to a model available on your account (e.g. <code>claude-3-5-sonnet-20241022</code>)</li>
+       </ul>`;
+    answer.classList.add('active');
+  } finally {
+    btn.disabled = false;
+    thinking.innerHTML = '🧠 AI Agent reasoning across hospital data sources via Splunk MCP...';
+  }
+}
+
+document.getElementById('userQuery').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ askAgent(); e.preventDefault(); }
+});
+
+/* =========================================================================
+   ON LOAD — show ONLY the main picture (ecosystem). No auto-run.
+   ========================================================================= */
+window.addEventListener('load', () => {
+  drawConnections();
+  document.getElementById('scenarioPanel').style.display = 'none';
+  document.getElementById('mcpPanel').style.display = 'none';
+  hideAnalyzingBanner();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+});
+</script>
+</body>
+</html>

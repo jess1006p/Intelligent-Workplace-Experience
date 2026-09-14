@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WELL Compliance Dashboard — CoreNet Munich 2026</title>
+    <style>
+        @font-face {
+            font-family: 'CiscoSansTT';
+            src: local('CiscoSansTT'), local('Arial');
+        }
+
+        :root {
+            --iwe-bg-top: #070b16;
+            --iwe-bg-mid: #0c1428;
+            --iwe-bg-bottom: #3a1c24;
+            --iwe-surface: rgba(255, 255, 255, 0.03);
+            --iwe-surface-raised: rgba(255, 255, 255, 0.06);
+            --iwe-border: rgba(0, 188, 235, 0.18);
+            --iwe-border-strong: rgba(0, 188, 235, 0.35);
+            --iwe-text: #ffffff;
+            --iwe-text-muted: rgba(255, 255, 255, 0.65);
+            --iwe-text-soft: rgba(255, 255, 255, 0.85);
+
+            --cisco-blue: #00bceb;
+            --cisco-dark-blue: #0088b0;
+            --cisco-teal: #00bceb;
+            --cisco-green: #86BE5B;
+            --cisco-orange: #FF8300;
+            --cisco-red: #E2231A;
+            --cisco-light-gray: var(--iwe-surface-raised);
+            --cisco-medium-gray: var(--iwe-text-muted);
+            --cisco-dark-gray: var(--iwe-text-soft);
+            --cisco-white: var(--iwe-surface);
+            --header-footer-gradient: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            --well-green: #22C55E;
+            --well-amber: #F59E0B;
+            --well-red: #EF4444;
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            --card-shadow-hover: 0 12px 40px rgba(0, 188, 235, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'CiscoSansTT', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--iwe-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header — IWE dark shell */
+        header {
+            background: transparent;
+            color: white;
+            padding: 24px 48px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--iwe-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: none;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .cisco-logo-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .cisco-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .header-divider {
+            width: 2px;
+            height: 48px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--cisco-blue);
+        }
+
+        .header-subtitle {
+            font-size: 15px;
+            opacity: 0.9;
+            max-width: 720px;
+        }
+
+        .event-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.25);
+            white-space: nowrap;
+        }
+
+        /* Main layout */
+        main {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 32px 48px 48px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+            background: var(--cisco-white);
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+        }
+
+        .toolbar-left {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .toolbar label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cisco-medium-gray);
+        }
+
+        .toolbar select {
+            padding: 10px 14px;
+            border: 1px solid var(--iwe-border-strong);
+            border-radius: 6px;
+            font-size: 15px;
+            background: var(--iwe-surface-raised);
+            color: var(--iwe-text);
+            min-width: 160px;
+        }
+
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(34,197,94,0.12);
+            color: #15803d;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--well-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .updated-at {
+            font-size: 13px;
+            color: var(--cisco-medium-gray);
+        }
+
+        /* Hero KPI row */
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.2fr repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1200px) {
+            .hero-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .hero-grid { grid-template-columns: 1fr; }
+            main { padding: 20px; }
+            header { padding: 20px; }
+        }
+
+        .hero-score {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 28px 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .hero-score::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--cisco-green), var(--cisco-blue));
+        }
+
+        .score-ring {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-ring-value {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-ring-value .num {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+            line-height: 1;
+        }
+
+        .score-ring-value .unit {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+        }
+
+        .hero-score-text h2 {
+            font-size: 22px;
+            color: var(--cisco-dark-blue);
+            margin-bottom: 8px;
+        }
+
+        .hero-score-text p {
+            font-size: 15px;
+            color: var(--cisco-medium-gray);
+            margin-bottom: 12px;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(4,159,217,0.12);
+            color: var(--cisco-blue);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stat-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--iwe-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: var(--cisco-blue);
+        }
+
+        .stat-card.status-good::before { background: var(--well-green); }
+        .stat-card.status-warn::before { background: var(--well-amber); }
+        .stat-card.status-bad::before { background: var(--well-red); }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--cisco-blue);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+            margin-bottom: 4px;
+            line-height: 1.1;
+        }
+
+        .stat-value .suffix {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            color: var(--cisco-medium-gray);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            font-size: 13px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .stat-trend.up { color: var(--well-green); }
+        .stat-trend.down { color: var(--well-red); }
+        .stat-trend.flat { color: var(--cisco-medium-gray); }
+
+        /* Section titles */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-header h3 {
+            font-size: 20px;
+            color: var(--cisco-dark-blue);
+            font-weight: 700;
+        }
+
+        .section-header span {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+        }
+
+        /* WELL concepts grid */
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .concept-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .concept-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .concept-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .concept-icon {
+            font-size: 24px;
+        }
+
+        .concept-pct {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+        }
+
+        .concept-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cisco-dark-gray);
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .progress-fill.good { background: var(--well-green); }
+        .progress-fill.warn { background: var(--well-amber); }
+        .progress-fill.bad { background: var(--well-red); }
+
+        .concept-meta {
+            font-size: 11px;
+            color: var(--cisco-medium-gray);
+            margin-top: 8px;
+        }
+
+        /* Two-column panels — metrics panel wider for trend sparklines */
+        .panels-row {
+            display: grid;
+            grid-template-columns: minmax(0, 2.25fr) minmax(260px, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 960px) {
+            .panels-row { grid-template-columns: 1fr; }
+        }
+
+        .panel-metrics {
+            min-width: 0;
+        }
+
+        .panel {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+        }
+
+        .panel h4 {
+            font-size: 17px;
+            color: var(--cisco-dark-blue);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--cisco-light-gray);
+        }
+
+        /* Environmental metrics table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        .metrics-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--cisco-light-gray);
+            color: var(--cisco-medium-gray);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .metrics-table .col-metric { width: 26%; }
+        .metrics-table .col-value { width: 14%; }
+        .metrics-table .col-target { width: 14%; }
+        .metrics-table .col-status { width: 14%; }
+        .metrics-table .col-trend {
+            width: 32%;
+            min-width: 220px;
+        }
+
+        .metrics-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--iwe-border);
+            vertical-align: middle;
+        }
+
+        .metrics-table td.col-trend {
+            padding-right: 12px;
+        }
+
+        .trend-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trend-cell .sparkline {
+            flex: 1;
+            min-width: 120px;
+            max-width: none;
+        }
+
+        .btn-expand {
+            flex-shrink: 0;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--cisco-blue);
+            background: rgba(4, 159, 217, 0.08);
+            border: 1px solid rgba(4, 159, 217, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-expand:hover {
+            background: var(--cisco-blue);
+            color: white;
+            border-color: var(--cisco-blue);
+        }
+
+        .btn-expand:focus-visible {
+            outline: 2px solid var(--cisco-teal);
+            outline-offset: 2px;
+        }
+
+        .metrics-table tr:last-child td { border-bottom: none; }
+
+        .metric-name { font-weight: 600; color: var(--cisco-dark-gray); }
+        .metric-well { font-size: 12px; color: var(--cisco-medium-gray); }
+
+        .status-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-chip.compliant { background: rgba(34,197,94,0.15); color: #15803d; }
+        .status-chip.monitor { background: rgba(245,158,11,0.15); color: #b45309; }
+        .status-chip.action { background: rgba(239,68,68,0.15); color: #b91c1c; }
+
+        /* Sparkline bars */
+        .sparkline {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            width: 100%;
+            min-width: 200px;
+            max-width: 320px;
+        }
+
+        .spark-bar {
+            flex: 1;
+            min-width: 6px;
+            background: var(--cisco-teal);
+            border-radius: 2px 2px 0 0;
+            opacity: 0.7;
+            transition: height 0.3s;
+        }
+
+        .spark-bar:last-child {
+            opacity: 1;
+            background: var(--cisco-blue);
+        }
+
+        /* Alerts list */
+        .alert-list { list-style: none; }
+
+        .alert-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--iwe-border);
+            align-items: flex-start;
+        }
+
+        .alert-item:last-child { border-bottom: none; }
+
+        .alert-severity {
+            flex-shrink: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 6px;
+        }
+
+        .alert-severity.high { background: var(--well-red); }
+        .alert-severity.medium { background: var(--well-amber); }
+        .alert-severity.low { background: var(--cisco-blue); }
+
+        .alert-body strong {
+            display: block;
+            font-size: 14px;
+            color: var(--cisco-dark-gray);
+            margin-bottom: 4px;
+        }
+
+        .alert-body span {
+            font-size: 13px;
+            color: var(--cisco-medium-gray);
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* Zone cards */
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .zone-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--iwe-border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .zone-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--cisco-dark-blue);
+        }
+
+        .zone-score {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .zone-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .zone-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .zone-metric label { color: var(--cisco-medium-gray); }
+        .zone-metric value { font-weight: 600; }
+
+        /* Workspace device diagram */
+        .diagram-section {
+            margin-top: 32px;
+            margin-bottom: 32px;
+        }
+
+        .diagram-panel {
+            background: var(--cisco-white);
+            border: 1px solid var(--iwe-border);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .diagram-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--cisco-dark-blue), var(--cisco-blue));
+        }
+
+        .diagram-panel-header {
+            padding: 24px 28px 0;
+        }
+
+        .diagram-panel-header h3 {
+            font-size: 20px;
+            color: var(--cisco-dark-blue);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .diagram-panel-header p {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+            max-width: 900px;
+        }
+
+        .diagram-frame {
+            margin: 20px 28px 28px;
+            padding: 16px;
+            background: linear-gradient(160deg, #0a1f3d 0%, #0D274D 45%, #123a5c 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(4, 159, 217, 0.25);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        .diagram-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .diagram-caption {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 28px 24px;
+        }
+
+        .diagram-tag {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(4, 159, 217, 0.1);
+            color: var(--cisco-blue);
+            border: 1px solid rgba(4, 159, 217, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .diagram-frame {
+                margin: 16px 16px 20px;
+                padding: 10px;
+            }
+
+            .diagram-panel-header {
+                padding: 20px 20px 0;
+            }
+
+            .diagram-caption {
+                padding: 0 20px 20px;
+            }
+        }
+
+        /* Data sources footer strip */
+        .sources-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--cisco-white);
+            border-radius: 8px;
+            border: 1px solid var(--iwe-border);
+            margin-bottom: 32px;
+        }
+
+        .source-tag {
+            font-size: 12px;
+            padding: 6px 12px;
+            background: var(--cisco-light-gray);
+            border-radius: 6px;
+            color: var(--cisco-medium-gray);
+            font-weight: 500;
+        }
+
+        .source-tag strong { color: var(--cisco-dark-gray); }
+
+        /* Footer — IWE dark shell */
+        footer {
+            background: transparent;
+            color: white;
+            padding: 48px 48px 32px;
+            margin-top: 64px;
+            text-align: center;
+            border-top: 1px solid var(--iwe-border);
+        }
+
+        .footer-logo {
+            display: block;
+            height: 56px;
+            width: auto;
+            margin: 0 auto 16px;
+            object-fit: contain;
+        }
+
+        .footer-event {
+            opacity: 0.9;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* IWE dark shell overrides */
+        .toolbar,
+        .hero-score,
+        .stat-card,
+        .concept-card,
+        .panel,
+        .zone-card,
+        .diagram-panel,
+        .sources-strip,
+        .meta-item {
+            border-color: var(--iwe-border) !important;
+            border-radius: 14px;
+        }
+
+        .toolbar select {
+            background: var(--iwe-surface-raised);
+            border-color: var(--iwe-border-strong);
+            color: var(--iwe-text);
+        }
+
+        .live-pill {
+            color: #86efac;
+        }
+
+        .hero-score-text h2,
+        .section-header h3,
+        .panel h4,
+        .dashboard-title-row h1 {
+            color: var(--cisco-blue);
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .metrics-table td {
+            border-bottom-color: var(--iwe-border);
+        }
+
+        .status-chip.compliant { color: #86efac; }
+        .status-chip.monitor { color: #fcd34d; }
+        .status-chip.action { color: #fca5a5; }
+
+        .alert-item {
+            border-bottom-color: var(--iwe-border);
+        }
+
+        .diagram-frame {
+            background: var(--iwe-surface-raised);
+            border-color: var(--iwe-border);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="cisco-logo-section">
+                <img class="cisco-logo" src="cisco-logo.png" alt="Cisco">
+                <div class="header-divider"></div>
+                <div class="header-text">
+                    <div class="header-title">WELL Compliance Dashboard</div>
+                    <div class="header-subtitle">Real-time building health &amp; WELL v2 feature monitoring</div>
+                </div>
+            </div>
+            <div class="event-badge">
+                CoreNet Global Summit EMEA 2026 • Munich
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <label for="building-select">Building</label>
+                <select id="building-select" onchange="refreshDashboard()">
+                    <option value="munich-hq">Munich HQ — Leopoldstraße</option>
+                    <option value="munich-lab">Innovation Lab — Werksviertel</option>
+                </select>
+                <label for="floor-select">Floor</label>
+                <select id="floor-select" onchange="refreshDashboard()">
+                    <option value="all">All floors</option>
+                    <option value="3">Floor 3 — Open workspace</option>
+                    <option value="4">Floor 4 — Executive &amp; meeting</option>
+                    <option value="5">Floor 5 — Collaboration hub</option>
+                </select>
+                <div class="live-pill">
+                    <span class="live-dot"></span>
+                    Live telemetry
+                </div>
+            </div>
+            <div class="updated-at" id="updated-at">Last updated: —</div>
+        </div>
+
+        <div class="hero-grid">
+            <div class="hero-score">
+                <div class="score-ring">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#e8e8e8" stroke-width="10"/>
+                        <circle id="score-arc" cx="60" cy="60" r="52" fill="none" stroke="#049FD9" stroke-width="10"
+                                stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="49"/>
+                    </svg>
+                    <div class="score-ring-value">
+                        <span class="num" id="overall-score">87</span>
+                        <span class="unit">WELL score</span>
+                    </div>
+                </div>
+                <div class="hero-score-text">
+                    <h2>Portfolio compliance posture</h2>
+                    <p id="score-summary">3 of 4 WELL concepts meeting target thresholds. One feature under active remediation on Floor 4.</p>
+                    <span class="tier-badge" id="tier-badge">WELL Certified — Gold track</span>
+                </div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" id="kpi-comfort">94<span class="suffix">%</span></div>
+                <div class="stat-label">Room comfort confidence</div>
+                <div class="stat-trend up" id="trend-comfort">▲ +2.1% vs 7-day avg</div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" id="kpi-air">96<span class="suffix">%</span></div>
+                <div class="stat-label">Air quality compliance</div>
+                <div class="stat-trend up" id="trend-air">▲ CO₂ within WELL limits</div>
+            </div>
+            <div class="stat-card status-warn">
+                <div class="stat-value" id="kpi-risk">78<span class="suffix">%</span></div>
+                <div class="stat-label">Experience / risk posture</div>
+                <div class="stat-trend flat" id="trend-risk">● 2 zones in monitor state</div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" id="kpi-energy">€1.2<span class="suffix">k</span></div>
+                <div class="stat-label">Energy waste avoided (MTD)</div>
+                <div class="stat-trend up" id="trend-energy">▲ HVAC optimisation active</div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h3>WELL v2 concept compliance</h3>
+            <span>Mapped from live sensor streams &amp; operational data</span>
+        </div>
+        <div class="concepts-grid" id="concepts-grid"></div>
+
+        <div class="panels-row">
+            <div class="panel panel-metrics">
+                <h4>Environmental metrics — live readings</h4>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th class="col-metric">Metric</th>
+                            <th class="col-value">Value</th>
+                            <th class="col-target">WELL target</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-trend">24h trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-body"></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h4>Active alerts &amp; remediation</h4>
+                <ul class="alert-list" id="alert-list"></ul>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h3>Zone performance</h3>
+            <span>Per-space WELL sub-scores</span>
+        </div>
+        <div class="zones-grid" id="zones-grid"></div>
+
+        <div class="hero-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+            <div class="stat-card">
+                <div class="stat-value" id="kpi-util">68<span class="suffix">%</span></div>
+                <div class="stat-label">Room utilization percentage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="kpi-booking">91<span class="suffix">%</span></div>
+                <div class="stat-label">Booking automation effectiveness</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="kpi-sensors">48</div>
+                <div class="stat-label">Active sensors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="kpi-coverage">98<span class="suffix">%</span></div>
+                <div class="stat-label">Floor Coverage (IAQ + presence monitoring)</div>
+            </div>
+        </div>
+
+        <div class="sources-strip" style="margin-top: 0;">
+            <span class="source-tag"><strong>Sources:</strong></span>
+            <span class="source-tag">Cisco Spaces — occupancy &amp; utilisation</span>
+            <span class="source-tag">Meraki MT14/MT15 — IAQ, temp, humidity, noise</span>
+            <span class="source-tag">BMS — HVAC setpoints &amp; ventilation</span>
+            <span class="source-tag">Splunk — correlation &amp; alerting</span>
+            <span class="source-tag">Cisco Collaboration endpoints</span>
+        </div>
+    </main>
+
+    <footer>
+        <img class="footer-logo" src="cisco-logo.png" alt="Cisco">
+        <div class="footer-event">CoreNet Global Summit EMEA 2026 | Munich</div>
+    </footer>
+
+    <script>
+        var WELL_CONCEPTS = [
+            { id: 'air', name: 'Air', icon: '💨', pct: 96, features: '12/12', concept: 'A01–A08' },
+            { id: 'light', name: 'Light', icon: '💡', pct: 92, features: '10/11', concept: 'L01–L10' },
+            { id: 'thermal', name: 'Thermal Comfort', icon: '🌡️', pct: 94, features: '9/9', concept: 'T01–T07' },
+            { id: 'sound', name: 'Sound', icon: '🔊', pct: 81, features: '5/6', concept: 'S01–S05' }
+        ];
+
+        var METRICS = [
+            { name: 'CO₂ concentration', well: 'Air — A03', unit: 'ppm', target: '< 900', key: 'co2',
+              good: function(v) { return v < 900; }, warn: function(v) { return v < 1000; },
+              targetSpec: { type: 'max', max: 900, warnMax: 1000 }, jitter: 35, seriesMin: 680, seriesMax: 1020 },
+            { name: 'PM2.5', well: 'Air — A01', unit: 'µg/m³', target: '< 15', key: 'pm25',
+              good: function(v) { return v < 15; }, warn: function(v) { return v < 25; },
+              targetSpec: { type: 'max', max: 15, warnMax: 25 }, jitter: 1.2, seriesMin: 4, seriesMax: 28 },
+            { name: 'Temperature', well: 'Thermal — T01', unit: '°C', target: '20–24', key: 'temp',
+              good: function(v) { return v >= 20 && v <= 24; }, warn: function(v) { return v >= 18 && v <= 26; },
+              targetSpec: { type: 'range', min: 20, max: 24, warnMin: 18, warnMax: 26 }, jitter: 0.4, seriesMin: 18.5, seriesMax: 25.5 },
+            { name: 'Relative humidity', well: 'Thermal — T02', unit: '%', target: '30–60', key: 'humidity',
+              good: function(v) { return v >= 30 && v <= 60; }, warn: function(v) { return v >= 25 && v <= 65; },
+              targetSpec: { type: 'range', min: 30, max: 60, warnMin: 25, warnMax: 65 }, jitter: 2.5, seriesMin: 28, seriesMax: 62 },
+            { name: 'Equivalent light level', well: 'Light — L01', unit: 'lux', target: '≥ 300', key: 'light',
+              good: function(v) { return v >= 300; }, warn: function(v) { return v >= 200; },
+              targetSpec: { type: 'min', min: 300, warnMin: 200 }, jitter: 25, seriesMin: 180, seriesMax: 480 },
+            { name: 'Background noise', well: 'Sound — S01', unit: 'dBA', target: '< 50', key: 'noise',
+              good: function(v) { return v < 50; }, warn: function(v) { return v < 55; },
+              targetSpec: { type: 'max', max: 50, warnMax: 55 }, jitter: 1.5, seriesMin: 38, seriesMax: 58 },
+            { name: 'Ventilation effectiveness', well: 'Air — A06', unit: '%', target: '≥ 85', key: 'vent',
+              good: function(v) { return v >= 85; }, warn: function(v) { return v >= 75; },
+              targetSpec: { type: 'min', min: 85, warnMin: 75 }, jitter: 2, seriesMin: 72, seriesMax: 98 }
+        ];
+
+        var ZONES = [
+            { name: 'Executive boardroom — 4.01', floor: 4 },
+            { name: 'Open workspace — 3.12', floor: 3 },
+            { name: 'Focus pods — 3.08', floor: 3 },
+            { name: 'Town hall — 5.02', floor: 5 },
+            { name: 'Wellness lounge — 4.18', floor: 4 },
+            { name: 'Innovation lab — 5.14', floor: 5 }
+        ];
+
+        var state = {};
+
+        function rand(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function clamp(v, lo, hi) {
+            return Math.max(lo, Math.min(hi, v));
+        }
+
+        function statusClass(pct) {
+            if (pct >= 90) return 'good';
+            if (pct >= 75) return 'warn';
+            return 'bad';
+        }
+
+        function chipStatus(metric, value) {
+            if (metric.good(value)) return { cls: 'compliant', label: 'Compliant' };
+            if (metric.warn(value)) return { cls: 'monitor', label: 'Monitor' };
+            return { cls: 'action', label: 'Action' };
+        }
+
+        function formatMetricValue(key, v) {
+            if (key === 'temp' || key === 'pm25') return Math.round(v * 10) / 10;
+            return Math.round(v);
+        }
+
+        function getMetricByKey(key) {
+            for (var i = 0; i < METRICS.length; i++) {
+                if (METRICS[i].key === key) return METRICS[i];
+            }
+            return null;
+        }
+
+        function build24hSeries(metric) {
+            var points = [];
+            var now = new Date();
+            now.setMinutes(0, 0, 0);
+            var v = rand(metric.seriesMin, metric.seriesMax);
+            for (var i = 23; i >= 0; i--) {
+                var t = new Date(now.getTime() - i * 3600000);
+                v = v + rand(-metric.jitter, metric.jitter);
+                v = clamp(v, metric.seriesMin, metric.seriesMax);
+                v = formatMetricValue(metric.key, v);
+                points.push({
+                    hourLabel: t.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                    shortLabel: t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    value: v,
+                    timestamp: t.toISOString()
+                });
+            }
+            return points;
+        }
+
+        function ensureHistory24(metric) {
+            state.history24 = state.history24 || {};
+            if (!state.history24[metric.key] || state.history24[metric.key].length !== 24) {
+                state.history24[metric.key] = build24hSeries(metric);
+            }
+        }
+
+        function initHistory24() {
+            state.history24 = {};
+            METRICS.forEach(function(m) {
+                state.history24[m.key] = build24hSeries(m);
+            });
+        }
+
+        function generateReadings() {
+            state.co2 = Math.round(rand(720, 980));
+            state.pm25 = Math.round(rand(6, 18) * 10) / 10;
+            state.temp = Math.round(rand(20.5, 23.8) * 10) / 10;
+            state.humidity = Math.round(rand(38, 52));
+            state.light = Math.round(rand(280, 420));
+            state.noise = Math.round(rand(42, 54));
+            state.vent = Math.round(rand(82, 96));
+            state.comfort = Math.round(rand(90, 97));
+            state.air = Math.round(rand(92, 98));
+            state.risk = Math.round(rand(74, 82));
+            state.energy = (rand(1.0, 1.4)).toFixed(1);
+            state.util = Math.round(rand(62, 74));
+            state.booking = Math.round(rand(88, 94));
+            state.overall = Math.round(rand(85, 89));
+
+            state.history = state.history || {};
+            state.history24 = state.history24 || {};
+            METRICS.forEach(function(m) {
+                ensureHistory24(m);
+                var arr = state.history[m.key];
+                if (!arr) arr = state.history[m.key] = [];
+                arr.push(state[m.key]);
+                if (arr.length > 12) arr.shift();
+
+                var series = state.history24[m.key];
+                series[series.length - 1].value = state[m.key];
+            });
+        }
+
+        var METRIC_TREND_PAGES = {
+            co2: 'WELL_Trend_CO2_Concentration.html',
+            pm25: 'WELL_Trend_PM25.html',
+            temp: 'WELL_Trend_Temperature.html',
+            humidity: 'WELL_Trend_Relative_Humidity.html',
+            light: 'WELL_Trend_Light_Level.html',
+            noise: 'WELL_Trend_Background_Noise.html',
+            vent: 'WELL_Trend_Ventilation_Effectiveness.html'
+        };
+
+        function openMetricTrendDetail(key) {
+            var page = METRIC_TREND_PAGES[key];
+            if (page) {
+                window.open(page, '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        function renderConcepts() {
+            var grid = document.getElementById('concepts-grid');
+            grid.innerHTML = WELL_CONCEPTS.map(function(c) {
+                var pct = c.pct + (Math.random() > 0.7 ? (Math.random() > 0.5 ? 1 : -1) : 0);
+                pct = clamp(Math.round(pct), 65, 100);
+                var cls = statusClass(pct);
+                return '<div class="concept-card">' +
+                    '<div class="concept-top"><span class="concept-icon">' + c.icon + '</span>' +
+                    '<span class="concept-pct">' + pct + '%</span></div>' +
+                    '<div class="concept-name">' + c.name + '</div>' +
+                    '<div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+                    '<div class="concept-meta">Features ' + c.features + ' · ' + c.concept + '</div></div>';
+            }).join('');
+        }
+
+        function renderSparkline(key) {
+            ensureHistory24(getMetricByKey(key));
+            var series = state.history24[key] || [];
+            var arr = series.slice(-12).map(function(p) { return p.value; });
+            if (!arr.length) arr = [0];
+            var max = Math.max.apply(null, arr.concat([1]));
+            return '<div class="sparkline">' + arr.map(function(v) {
+                var h = Math.max(4, Math.round((v / max) * 100));
+                return '<div class="spark-bar" style="height:' + h + '%"></div>';
+            }).join('') + '</div>';
+        }
+
+        function renderTrendCell(key) {
+            return '<div class="trend-cell">' +
+                renderSparkline(key) +
+                '<button type="button" class="btn-expand" onclick="openMetricTrendDetail(\'' + key + '\')" title="Open detailed 24h trend chart">Expand</button>' +
+                '</div>';
+        }
+
+        function renderMetrics() {
+            var tbody = document.getElementById('metrics-body');
+            tbody.innerHTML = METRICS.map(function(m) {
+                var v = state[m.key];
+                var chip = chipStatus(m, v);
+                var display = typeof v === 'number' && v % 1 !== 0 ? v.toFixed(1) : v;
+                return '<tr><td><div class="metric-name">' + m.name + '</div>' +
+                    '<div class="metric-well">' + m.well + '</div></td>' +
+                    '<td><strong>' + display + '</strong> ' + m.unit + '</td>' +
+                    '<td>' + m.target + '</td>' +
+                    '<td class="col-status"><span class="status-chip ' + chip.cls + '">' + chip.label + '</span></td>' +
+                    '<td class="col-trend">' + renderTrendCell(m.key) + '</td></tr>';
+            }).join('');
+        }
+
+        function renderAlerts() {
+            var alerts = [
+                { sev: 'medium', title: 'Elevated CO₂ — Executive boardroom 4.01', desc: 'Ventilation boost scheduled; occupancy 12/14', time: '4 min ago' },
+                { sev: 'low', title: 'Acoustic drift — Open workspace 3.12', desc: 'Background noise 52 dBA; white-noise masking suggested', time: '18 min ago' },
+                { sev: 'high', title: 'WELL Sound S02 — acoustic threshold', desc: 'Meeting room 4.01 exceeds 50 dBA; masking review scheduled', time: '2 hr ago' }
+            ];
+            if (state.co2 > 900) {
+                alerts.unshift({ sev: 'medium', title: 'CO₂ threshold approach — Floor 4', desc: 'Current ' + state.co2 + ' ppm; BMS increasing outdoor air', time: 'Just now' });
+            }
+            document.getElementById('alert-list').innerHTML = alerts.slice(0, 4).map(function(a) {
+                return '<li class="alert-item"><span class="alert-severity ' + a.sev + '"></span>' +
+                    '<div class="alert-body"><strong>' + a.title + '</strong><span>' + a.desc + '</span></div>' +
+                    '<span class="alert-time">' + a.time + '</span></li>';
+            }).join('');
+        }
+
+        function renderZones() {
+            var floor = document.getElementById('floor-select').value;
+            var filtered = ZONES.filter(function(z) {
+                return floor === 'all' || String(z.floor) === floor;
+            });
+            document.getElementById('zones-grid').innerHTML = filtered.map(function(z) {
+                var score = Math.round(rand(78, 97));
+                var color = score >= 90 ? 'var(--well-green)' : score >= 80 ? 'var(--well-amber)' : 'var(--well-red)';
+                return '<div class="zone-card"><div class="zone-header">' +
+                    '<span class="zone-name">' + z.name + '</span>' +
+                    '<span class="zone-score" style="color:' + color + '">' + score + '</span></div>' +
+                    '<div class="zone-metrics">' +
+                    '<div class="zone-metric"><label>CO₂</label><value>' + Math.round(rand(680, 950)) + ' ppm</value></div>' +
+                    '<div class="zone-metric"><label>Temp</label><value>' + rand(21, 23).toFixed(1) + '°C</value></div>' +
+                    '<div class="zone-metric"><label>Humidity</label><value>' + Math.round(rand(40, 55)) + '%</value></div>' +
+                    '<div class="zone-metric"><label>Occupancy</label><value>' + Math.round(rand(45, 92)) + '%</value></div>' +
+                    '</div></div>';
+            }).join('');
+        }
+
+        function updateHeroKpis() {
+            document.getElementById('overall-score').textContent = state.overall;
+            var arc = document.getElementById('score-arc');
+            var circumference = 327;
+            var offset = circumference - (state.overall / 100) * circumference;
+            arc.setAttribute('stroke-dashoffset', offset);
+            arc.setAttribute('stroke', state.overall >= 85 ? '#6CC04A' : state.overall >= 75 ? '#F59E0B' : '#EF4444');
+
+            document.getElementById('kpi-comfort').innerHTML = state.comfort + '<span class="suffix">%</span>';
+            document.getElementById('kpi-air').innerHTML = state.air + '<span class="suffix">%</span>';
+            document.getElementById('kpi-risk').innerHTML = state.risk + '<span class="suffix">%</span>';
+            document.getElementById('kpi-energy').innerHTML = '€' + state.energy + '<span class="suffix">k</span>';
+            document.getElementById('kpi-util').innerHTML = state.util + '<span class="suffix">%</span>';
+            document.getElementById('kpi-booking').innerHTML = state.booking + '<span class="suffix">%</span>';
+
+            var compliant = WELL_CONCEPTS.filter(function(c) { return c.pct >= 85; }).length;
+            document.getElementById('score-summary').textContent =
+                compliant + ' of ' + WELL_CONCEPTS.length + ' WELL concepts meeting target thresholds. Live sensor fusion across ' +
+                document.getElementById('floor-select').options[document.getElementById('floor-select').selectedIndex].text + '.';
+        }
+
+        function refreshDashboard() {
+            generateReadings();
+            updateHeroKpis();
+            renderConcepts();
+            renderMetrics();
+            renderAlerts();
+            renderZones();
+            var now = new Date();
+            document.getElementById('updated-at').textContent =
+                'Last updated: ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        initHistory24();
+        refreshDashboard();
+        setInterval(refreshDashboard, 8000);
+    </script>
+</body>
+</html>

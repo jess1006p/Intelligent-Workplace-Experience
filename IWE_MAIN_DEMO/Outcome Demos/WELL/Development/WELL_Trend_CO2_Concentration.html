@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CO₂ Concentration — 24h Trend</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        :root {
+            --iwe-bg-top: #070b16;
+            --iwe-bg-mid: #0c1428;
+            --iwe-bg-bottom: #3a1c24;
+            --iwe-surface: rgba(255, 255, 255, 0.03);
+            --iwe-surface-raised: rgba(255, 255, 255, 0.06);
+            --iwe-border: rgba(0, 188, 235, 0.18);
+            --iwe-border-strong: rgba(0, 188, 235, 0.35);
+            --iwe-text: #ffffff;
+            --iwe-text-muted: rgba(255, 255, 255, 0.65);
+            --iwe-text-soft: rgba(255, 255, 255, 0.85);
+
+            --cisco-blue: #00bceb;
+            --cisco-dark-blue: #0088b0;
+            --cisco-medium-gray: var(--iwe-text-muted);
+            --cisco-dark-gray: var(--iwe-text-soft);
+            --cisco-white: var(--iwe-surface);
+            --cisco-light-gray: var(--iwe-surface-raised);
+            --header-footer-gradient: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            --well-green: #22C55E;
+            --well-amber: #F59E0B;
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'CiscoSansTT', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--iwe-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        header {
+            background: transparent;
+            color: white;
+            padding: 24px 48px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--iwe-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: none;
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .cisco-logo-section { display: flex; align-items: center; gap: 24px; }
+        .cisco-logo { height: 48px; width: auto; object-fit: contain; }
+        .header-divider { width: 2px; height: 48px; background: rgba(255,255,255,0.3); }
+        .header-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; color: var(--cisco-blue); }
+        .header-subtitle { font-size: 15px; opacity: 0.9; color: var(--iwe-text-soft); }
+        .event-badge {
+            background: rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid var(--iwe-border-strong);
+            color: var(--iwe-text-soft);
+        }
+        main { max-width: 1400px; margin: 0 auto; padding: 32px 48px 48px; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            color: var(--cisco-blue);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .back-link:hover { text-decoration: underline; color: #33c9f0; }
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .meta-card {
+            background: var(--iwe-surface);
+            border: 1px solid var(--iwe-border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: var(--card-shadow);
+        }
+        .meta-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--iwe-text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .meta-value { font-size: 18px; font-weight: 700; color: var(--iwe-text); }
+        .meta-value small { font-size: 14px; font-weight: 500; color: var(--iwe-text-muted); }
+        .chart-panel {
+            background: var(--iwe-surface);
+            border: 1px solid var(--iwe-border);
+            border-radius: 8px;
+            padding: 28px;
+            box-shadow: var(--card-shadow);
+        }
+        .chart-panel h2 { font-size: 20px; color: var(--cisco-blue); margin-bottom: 8px; }
+        .chart-panel p { font-size: 14px; color: var(--iwe-text-muted); margin-bottom: 24px; }
+        .chart-wrap { position: relative; width: 100%; height: 420px; }
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 28px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--iwe-border);
+        }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--iwe-text-soft); }
+        .legend-swatch { width: 28px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+        .legend-swatch.bar { background: rgba(0, 188, 235, 0.85); }
+        .legend-swatch.target-range {
+            background: rgba(34, 197, 94, 0.25);
+            border: 2px solid var(--well-green);
+            height: 12px;
+        }
+        .legend-swatch.target-line {
+            background: transparent;
+            border-top: 3px solid var(--well-green);
+            height: 0;
+            width: 32px;
+        }
+        .legend-swatch.warn-line {
+            background: transparent;
+            border-top: 2px dashed var(--well-amber);
+            height: 0;
+            width: 32px;
+        }
+        footer {
+            background: transparent;
+            color: white;
+            padding: 48px 48px 32px;
+            margin-top: 64px;
+            text-align: center;
+            border-top: 1px solid var(--iwe-border);
+        }
+        .footer-logo { display: block; height: 56px; width: auto; margin: 0 auto 16px; }
+        .footer-event { opacity: 0.9; font-size: 18px; font-weight: 500; color: var(--iwe-text-soft); }
+        @media (max-width: 768px) {
+            main, header { padding-left: 20px; padding-right: 20px; }
+            .chart-wrap { height: 320px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="cisco-logo-section">
+                <img class="cisco-logo" src="cisco-logo.png" alt="Cisco">
+                <div class="header-divider"></div>
+                <div>
+                    <div class="header-title">CO₂ concentration — 24h Trend</div>
+                    <div class="header-subtitle">Sample 24-hour trend with WELL v2 target overlay</div>
+                </div>
+            </div>
+            <div class="event-badge">CoreNet Global Summit EMEA 2026 • Munich</div>
+        </div>
+    </header>
+    <main>
+        <a class="back-link" href="WELL_Compliance_Dashboard.html">← Back to WELL Compliance Dashboard</a>
+        <div class="detail-meta">
+            <div class="meta-card"><div class="meta-label">Metric</div><div class="meta-value">CO₂ concentration</div></div>
+            <div class="meta-card"><div class="meta-label">WELL feature</div><div class="meta-value">Air — A03</div></div>
+            <div class="meta-card"><div class="meta-label">Sample current reading</div><div class="meta-value">847 <small>ppm</small></div></div>
+            <div class="meta-card"><div class="meta-label">WELL target</div><div class="meta-value">< 900</div></div>
+            <div class="meta-card"><div class="meta-label">Building</div><div class="meta-value">Munich HQ — Leopoldstraße</div></div>
+            <div class="meta-card"><div class="meta-label">Scope</div><div class="meta-value">Floor 4 — Executive & meeting</div></div>
+        </div>
+        <div class="chart-panel">
+            <h2>24-hour hourly trend (sample data)</h2>
+            <p>Hourly CO₂ readings from Meraki MT sensors across meeting and workspace zones. Green line marks the WELL v2 maximum; dashed amber line is the monitor threshold.</p>
+            <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
+            <div class="legend-row" id="chart-legend"></div>
+        </div>
+    </main>
+    <footer>
+        <img class="footer-logo" src="cisco-logo.png" alt="Cisco">
+        <div class="footer-event">CoreNet Global Summit EMEA 2026 | Munich</div>
+    </footer>
+    <script>
+        var METRIC = {"name": "CO₂ concentration", "unit": "ppm", "targetSpec": {"type": "max", "max": 900, "warnMax": 1000}, "labels": ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], "hourLabels": ["Mon 00:00", "Mon 01:00", "Mon 02:00", "Mon 03:00", "Mon 04:00", "Mon 05:00", "Mon 06:00", "Mon 07:00", "Mon 08:00", "Mon 09:00", "Mon 10:00", "Mon 11:00", "Mon 12:00", "Mon 13:00", "Mon 14:00", "Mon 15:00", "Mon 16:00", "Mon 17:00", "Mon 18:00", "Mon 19:00", "Mon 20:00", "Mon 21:00", "Mon 22:00", "Mon 23:00"], "values": [768, 775, 782, 791, 805, 818, 832, 845, 858, 871, 884, 892, 901, 895, 882, 868, 855, 842, 830, 818, 805, 792, 780, 847]};
+
+        function buildAnnotations(spec, unit) {
+            var a = {};
+            if (spec.type === 'range') {
+                a.wellTarget = {
+                    type: 'box', yMin: spec.min, yMax: spec.max,
+                    backgroundColor: 'rgba(34, 197, 94, 0.18)',
+                    borderColor: 'rgba(34, 197, 94, 0.9)', borderWidth: 2,
+                    label: { display: true, content: 'WELL target ' + spec.min + '–' + spec.max + ' ' + unit,
+                        position: { x: 'start', y: 'start' }, backgroundColor: 'rgba(34, 197, 94, 0.9)',
+                        color: '#fff', font: { size: 11, weight: '600' }, padding: 6 }
+                };
+                if (spec.warnMin !== undefined) {
+                    a.warnLow = { type: 'line', yMin: spec.warnMin, yMax: spec.warnMin,
+                        borderColor: 'rgba(245, 158, 11, 0.9)', borderWidth: 2, borderDash: [6, 4],
+                        label: { display: true, content: 'Monitor min ' + spec.warnMin + ' ' + unit,
+                            position: 'start', backgroundColor: 'rgba(245, 158, 11, 0.9)', color: '#fff', font: { size: 10 }, padding: 4 }
+                    };
+                }
+                if (spec.warnMax !== undefined) {
+                    a.warnHigh = { type: 'line', yMin: spec.warnMax, yMax: spec.warnMax,
+                        borderColor: 'rgba(245, 158, 11, 0.9)', borderWidth: 2, borderDash: [6, 4],
+                        label: { display: true, content: 'Monitor max ' + spec.warnMax + ' ' + unit,
+                            position: 'end', backgroundColor: 'rgba(245, 158, 11, 0.9)', color: '#fff', font: { size: 10 }, padding: 4 }
+                    };
+                }
+            } else if (spec.type === 'max') {
+                a.wellTarget = { type: 'line', yMin: spec.max, yMax: spec.max,
+                    borderColor: 'rgba(34, 197, 94, 0.95)', borderWidth: 3,
+                    label: { display: true, content: 'WELL max ' + spec.max + ' ' + unit,
+                        position: 'start', backgroundColor: 'rgba(34, 197, 94, 0.95)', color: '#fff',
+                        font: { size: 11, weight: '600' }, padding: 6 }
+                };
+                if (spec.warnMax !== undefined) {
+                    a.warnLine = { type: 'line', yMin: spec.warnMax, yMax: spec.warnMax,
+                        borderColor: 'rgba(245, 158, 11, 0.9)', borderWidth: 2, borderDash: [6, 4],
+                        label: { display: true, content: 'Monitor ' + spec.warnMax + ' ' + unit,
+                            position: 'end', backgroundColor: 'rgba(245, 158, 11, 0.9)', color: '#fff', font: { size: 10 }, padding: 4 }
+                    };
+                }
+            } else if (spec.type === 'min') {
+                a.wellTarget = { type: 'line', yMin: spec.min, yMax: spec.min,
+                    borderColor: 'rgba(34, 197, 94, 0.95)', borderWidth: 3,
+                    label: { display: true, content: 'WELL min ' + spec.min + ' ' + unit,
+                        position: 'start', backgroundColor: 'rgba(34, 197, 94, 0.95)', color: '#fff',
+                        font: { size: 11, weight: '600' }, padding: 6 }
+                };
+                if (spec.warnMin !== undefined) {
+                    a.warnLine = { type: 'line', yMin: spec.warnMin, yMax: spec.warnMin,
+                        borderColor: 'rgba(245, 158, 11, 0.9)', borderWidth: 2, borderDash: [6, 4],
+                        label: { display: true, content: 'Monitor ' + spec.warnMin + ' ' + unit,
+                            position: 'end', backgroundColor: 'rgba(245, 158, 11, 0.9)', color: '#fff', font: { size: 10 }, padding: 4 }
+                    };
+                }
+            }
+            return a;
+        }
+
+        function computeYScale(values, spec) {
+            var min = Math.min.apply(null, values);
+            var max = Math.max.apply(null, values);
+            if (spec.min !== undefined) min = Math.min(min, spec.min);
+            if (spec.max !== undefined) max = Math.max(max, spec.max);
+            if (spec.warnMin !== undefined) min = Math.min(min, spec.warnMin);
+            if (spec.warnMax !== undefined) max = Math.max(max, spec.warnMax);
+            var pad = (max - min) * 0.12 || 1;
+            return { min: Math.floor((min - pad) * 10) / 10, max: Math.ceil((max + pad) * 10) / 10 };
+        }
+
+        function renderLegend(spec, unit) {
+            var html = '<div class="legend-item"><span class="legend-swatch bar"></span>Hourly measured value (' + unit + ')</div>';
+            if (spec.type === 'range') {
+                html += '<div class="legend-item"><span class="legend-swatch target-range"></span>WELL compliant range (' + spec.min + '–' + spec.max + ' ' + unit + ')</div>';
+                html += '<div class="legend-item"><span class="legend-swatch warn-line"></span>Monitor thresholds (' + spec.warnMin + ' / ' + spec.warnMax + ' ' + unit + ')</div>';
+            } else if (spec.type === 'max') {
+                html += '<div class="legend-item"><span class="legend-swatch target-line"></span>WELL maximum (' + spec.max + ' ' + unit + ')</div>';
+                html += '<div class="legend-item"><span class="legend-swatch warn-line"></span>Monitor threshold (' + spec.warnMax + ' ' + unit + ')</div>';
+            } else if (spec.type === 'min') {
+                html += '<div class="legend-item"><span class="legend-swatch target-line"></span>WELL minimum (' + spec.min + ' ' + unit + ')</div>';
+                html += '<div class="legend-item"><span class="legend-swatch warn-line"></span>Monitor threshold (' + spec.warnMin + ' ' + unit + ')</div>';
+            }
+            document.getElementById('chart-legend').innerHTML = html;
+        }
+
+        (function init() {
+            var d = METRIC;
+            var spec = d.targetSpec;
+            var yBounds = computeYScale(d.values, spec);
+            renderLegend(spec, d.unit);
+
+            new Chart(document.getElementById('trend-chart'), {
+                type: 'bar',
+                data: {
+                    labels: d.labels,
+                    datasets: [{
+                        label: 'Hourly reading (' + d.unit + ')',
+                        data: d.values,
+                        backgroundColor: 'rgba(0, 188, 235, 0.82)',
+                        borderColor: 'rgba(0, 188, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { font: { size: 13 }, color: 'rgba(255, 255, 255, 0.85)', boxWidth: 14, padding: 16 }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(12, 20, 40, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: 'rgba(255, 255, 255, 0.85)',
+                            borderColor: 'rgba(0, 188, 235, 0.35)',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(items) { return d.hourLabels[items[0].dataIndex]; },
+                                label: function(ctx) { return 'Value: ' + ctx.parsed.y + ' ' + d.unit; }
+                            }
+                        },
+                        annotation: { annotations: buildAnnotations(spec, d.unit) }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (24-hour sample, hourly)', font: { size: 13, weight: '600' }, color: 'rgba(255, 255, 255, 0.65)' },
+                            ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 }, color: 'rgba(255, 255, 255, 0.65)' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            min: yBounds.min,
+                            max: yBounds.max,
+                            title: { display: true, text: d.name + ' (' + d.unit + ')', font: { size: 13, weight: '600' }, color: 'rgba(255, 255, 255, 0.65)' },
+                            ticks: { font: { size: 11 }, color: 'rgba(255, 255, 255, 0.65)' },
+                            grid: { color: 'rgba(255,255,255,0.08)' }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

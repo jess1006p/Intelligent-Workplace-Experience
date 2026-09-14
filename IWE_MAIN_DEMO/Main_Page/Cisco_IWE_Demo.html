@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cisco Intelligent Workplace Experiences</title>
+    <style>
+        :root {
+            --cisco-dark: #07182d;
+            --cisco-blue: #00bceb;
+            --cisco-green: #86BE5B;
+            --text-color: #ffffff;
+            --accent-workplaces: #ba5a73;
+            --accent-healthcare: #2dd4bf;
+            --accent-real-estate: #ffb300;
+            --accent-sustainability: #86be5b;
+            --accent-facilities: #fb7428;
+            --accent-it-network: #00bceb;
+            --bubble-accent: #0088b0;
+        }
+        body { 
+            background: linear-gradient(to bottom, #070b16 0%, #0c1428 50%, #3a1c24 100%);
+            background-attachment: fixed;
+            color: var(--text-color); 
+            font-family: 'Arial', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        h1, .section-title {
+            color: var(--cisco-blue);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0;
+            padding: 52px 24px 44px;
+            font-size: 2.6rem;
+        }
+
+        .section-title,
+        .outcomes-tab {
+            font-family: inherit;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.25;
+        }
+
+        .section-title {
+            margin: 0 0 18px 0;
+            font-size: 1.55rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+            gap: 28px;
+            max-width: 1760px;
+            margin: 0 auto;
+            padding: 8px 24px 40px;
+            align-items: stretch;
+        }
+
+        .section-block {
+            min-width: 0;
+            height: 100%;
+        }
+
+        .enablers-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 188, 235, 0.18);
+            border-radius: 14px;
+            padding: 18px 18px 16px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            gap: 8px;
+        }
+
+        .enablers-panel .section-title {
+            margin-bottom: 12px;
+        }
+
+        .enablers-panel .outcome-group {
+            flex: 1;
+            min-height: 0;
+            align-items: center;
+        }
+
+        .enabler-diagram {
+            --diagram-scale: 0.572;
+            --diagram-width: calc(1920px * var(--diagram-scale));
+            --diagram-height: calc(1080px * var(--diagram-scale));
+            --canvas-offset-x: 205px;
+            --canvas-offset-y: 55px;
+            --label-gap-vertical: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: var(--label-gap-vertical);
+        }
+
+        .enabler-diagram-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .enabler-label {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            line-height: 1.25;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        .enabler-label--zone {
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .enabler-label--accent {
+            color: var(--cisco-blue);
+        }
+
+        .enabler-label--top,
+        .enabler-label--bottom {
+            width: var(--diagram-width);
+            max-width: 100%;
+            text-align: center;
+        }
+
+        .enabler-label--left,
+        .enabler-label--right {
+            position: absolute;
+            top: 50%;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-50%);
+        }
+
+        .enabler-label--left {
+            left: 10px;
+        }
+
+        .enabler-label--right {
+            right: 0;
+            transform: translateY(-50%) translateX(48px);
+        }
+
+        .enabler-label--left span,
+        .enabler-label--right span {
+            display: inline-block;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .enabler-label--left span {
+            transform: rotate(-90deg);
+        }
+
+        .enabler-label--right span {
+            transform: rotate(90deg);
+        }
+
+        .enabler-label--anchored {
+            position: absolute;
+            z-index: 6;
+            text-align: center;
+            white-space: nowrap;
+            left: calc((var(--anchor-x) + var(--canvas-offset-x)) * var(--diagram-scale));
+            top: calc((var(--anchor-y) + var(--canvas-offset-y)) * var(--diagram-scale));
+            transform: translateX(-50%);
+        }
+
+        .enabler-label--fmp {
+            --anchor-x: 760px;
+            --anchor-y: 882px;
+        }
+
+        .enabler-label--poe {
+            --anchor-x: 772px;
+            --anchor-y: 292px;
+            font-size: 0.82rem;
+            letter-spacing: 0.06em;
+        }
+
+        .enabler-label--poe.enabler-label--anchored {
+            transform: translate(0, -50%);
+            text-align: left;
+        }
+
+        .enabler-label--interactive {
+            pointer-events: auto;
+            cursor: help;
+            z-index: 7;
+        }
+
+        .canvas-scaler {
+            position: relative;
+            width: var(--diagram-width);
+            max-width: 100%;
+            height: var(--diagram-height);
+            overflow: visible;
+            border-radius: 10px;
+            flex-shrink: 0;
+            padding-right: 36px;
+            box-sizing: content-box;
+        }
+
+        #canvas {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+            transform: scale(var(--diagram-scale)) translateX(var(--canvas-offset-x)) translateY(var(--canvas-offset-y));
+            transform-origin: top left;
+            background: transparent;
+        }
+        
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .flow-line { stroke: var(--cisco-blue); stroke-width: 4; fill: none; opacity: 0.3; stroke-linecap: round; }
+        .flow-line-green { stroke: var(--cisco-green); stroke-width: 4; fill: none; opacity: 0.5; stroke-linecap: round; }
+
+        .flow-dot { fill: var(--cisco-blue); filter: drop-shadow(0 0 5px var(--cisco-blue)); }
+        .flow-dot-green { fill: var(--cisco-green); filter: drop-shadow(0 0 5px var(--cisco-green)); }
+        
+        @keyframes move { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+        .animate-dot { animation: move 3s linear infinite; }
+        .animate-dot-green { animation: move 1s linear infinite; }
+        .dot-hidden { display: none; }
+
+        .device { 
+            position: absolute; 
+            width: 150px; 
+            height: 150px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 2; 
+            transition: transform 0.3s ease;
+        }
+        .device img { 
+            max-width: 150px; 
+            max-height: 150px; 
+            object-fit: contain; 
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 0px transparent);
+        }
+        .device.device-sm {
+            width: 100px;
+            height: 100px;
+        }
+        .device.device-sm img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+        .device-bms .device-tag {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            color: #ffffff;
+            background: rgba(7, 24, 45, 0.82);
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--cisco-blue);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .device:hover { transform: scale(1.15); }
+        .device:hover img { filter: drop-shadow(0 0 15px var(--cisco-blue)); }
+
+        #switch { width: 400px; height: 200px; left: 560px; top: 425px; }
+        #switch img { max-width: 400px; max-height: 200px; }
+
+        .logo-box { 
+            width: 200px; height: 120px; border: 2px solid rgba(0, 188, 235, 0.4); 
+            background: rgba(255, 255, 255, 0.05); border-radius: 12px; 
+            overflow: hidden;
+        }
+        .logo-box img { max-width: 170px; max-height: 90px; object-fit: contain; }
+        .logo-box-green { border-color: var(--cisco-green); }
+        .logo-box-spaces {
+            width: 190px;
+            height: 100px;
+        }
+        .logo-box-spaces img {
+            max-width: 175px;
+            max-height: 72px;
+        }
+
+        /* Outcomes panel */
+        .outcomes-panel {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 188, 235, 0.22);
+            border-radius: 14px;
+            padding: 18px 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+
+        .outcomes-panel .section-title {
+            margin-bottom: 12px;
+        }
+
+        .outcomes-tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid rgba(0, 188, 235, 0.2);
+        }
+
+        .outcomes-tab {
+            flex: 1;
+            margin: 0;
+            padding: 8px 12px 10px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .outcomes-tab:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .outcomes-tab.active {
+            color: var(--cisco-blue);
+            border-bottom-color: var(--cisco-blue);
+        }
+
+        .outcomes-tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .outcomes-tab-panel.active {
+            display: flex;
+        }
+
+        .outcomes-footer,
+        .enablers-footer {
+            flex-shrink: 0;
+            margin: 0;
+            padding: 8px 12px 2px;
+            border-top: 1px solid rgba(0, 188, 235, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.25;
+            text-align: center;
+        }
+
+        .outcomes-footer-accent,
+        .enablers-footer-accent {
+            color: var(--cisco-blue);
+            cursor: help;
+        }
+
+        .outcomes-footer-accent:hover,
+        .enablers-footer-accent:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        #outcomes-vertical .outcome-group {
+            flex: 1;
+            min-height: 0;
+        }
+
+        #outcomes-vertical .outcome-group-items {
+            flex: 1;
+            gap: 24px;
+        }
+
+        #outcomes-vertical .vertical-block {
+            flex: 1;
+            min-height: 0;
+        }
+
+        #outcomes-vertical .vertical-header {
+            flex-shrink: 0;
+        }
+
+        #outcomes-vertical .vertical-subitems {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        #outcomes-vertical .outcome-subitem {
+            flex: 1;
+        }
+
+        #outcomes-persona .outcome-group {
+            flex: 1;
+            min-height: 0;
+        }
+
+        #outcomes-persona .outcome-group-items {
+            flex: 1;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .outcomes-panel .vertical-block {
+            padding: 8px;
+        }
+
+        .outcomes-panel .outcome-item {
+            padding: 10px 12px;
+        }
+
+        .outcomes-panel .outcome-subitem {
+            min-height: 40px;
+            padding: 8px 10px;
+        }
+
+        .outcome-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .outcome-group-title {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--cisco-green);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(134, 190, 91, 0.35);
+        }
+
+        .outcome-group-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .outcome-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border: 2px solid rgba(0, 188, 235, 0.35);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            --block-accent: var(--cisco-blue);
+            --block-accent-rgb: 0, 188, 235;
+        }
+
+        .outcome-item--facilities {
+            --block-accent: var(--accent-healthcare);
+            --block-accent-rgb: 45, 212, 191;
+        }
+
+        .outcome-item--it-network {
+            --block-accent: var(--accent-it-network);
+            --block-accent-rgb: 0, 188, 235;
+        }
+
+        .outcome-item[class*="outcome-item--"] {
+            border-color: rgba(var(--block-accent-rgb), 0.38);
+        }
+
+        .outcome-item[class*="outcome-item--"] .outcome-icon {
+            background: rgba(var(--block-accent-rgb), 0.12);
+            border-color: rgba(var(--block-accent-rgb), 0.38);
+        }
+
+        .outcome-item[class*="outcome-item--"] .outcome-label {
+            color: var(--block-accent);
+        }
+
+        .outcome-item[class*="outcome-item--"]:hover {
+            border-color: var(--block-accent);
+            box-shadow: 0 0 20px rgba(var(--block-accent-rgb), 0.28);
+        }
+
+        .outcome-item:hover {
+            transform: translateX(4px);
+            border-color: var(--cisco-blue);
+            box-shadow: 0 0 20px rgba(0, 188, 235, 0.25);
+        }
+
+        .outcome-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: rgba(0, 188, 235, 0.12);
+            border: 1px solid rgba(0, 188, 235, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .outcome-item.vertical .outcome-icon {
+            background: rgba(134, 190, 91, 0.12);
+            border-color: rgba(134, 190, 91, 0.35);
+        }
+
+        .outcome-label {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.35;
+        }
+
+        .vertical-block {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.12);
+            --block-accent: var(--cisco-blue);
+            --block-accent-rgb: 0, 188, 235;
+        }
+
+        .vertical-block--workplaces {
+            --block-accent: var(--accent-workplaces);
+            --block-accent-rgb: 186, 90, 115;
+        }
+
+        .vertical-block--healthcare {
+            --block-accent: var(--accent-healthcare);
+            --block-accent-rgb: 45, 212, 191;
+        }
+
+        .vertical-block--real-estate {
+            --block-accent: var(--accent-real-estate);
+            --block-accent-rgb: 255, 179, 0;
+        }
+
+        .vertical-block--sustainability {
+            --block-accent: var(--accent-sustainability);
+            --block-accent-rgb: 134, 190, 91;
+        }
+
+        .vertical-block[class*="vertical-block--"] {
+            border-color: rgba(var(--block-accent-rgb), 0.32);
+        }
+
+        .vertical-block[class*="vertical-block--"] .vertical-header-label {
+            color: var(--block-accent);
+        }
+
+        .vertical-block[class*="vertical-block--"] .vertical-header .outcome-icon {
+            background: rgba(var(--block-accent-rgb), 0.12);
+            border-color: rgba(var(--block-accent-rgb), 0.38);
+        }
+
+        .vertical-block[class*="vertical-block--"] .outcome-subitem {
+            border-color: rgba(var(--block-accent-rgb), 0.28);
+        }
+
+        .vertical-block[class*="vertical-block--"] .outcome-subitem:hover {
+            border-color: var(--block-accent);
+            background: rgba(var(--block-accent-rgb), 0.1);
+        }
+
+        .vertical-block--sustainability .vertical-subitems .outcome-subitem:nth-child(3) {
+            grid-column: 1 / -1;
+            width: calc((100% - 8px) / 2);
+            margin-inline: auto;
+        }
+
+        .vertical-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 2px 6px;
+        }
+
+        .vertical-header .outcome-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+
+        .vertical-header-label {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .vertical-subitems {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding-left: 0;
+        }
+
+        @media (max-width: 640px) {
+            .vertical-subitems {
+                grid-template-columns: 1fr;
+            }
+
+            .vertical-block--sustainability .vertical-subitems .outcome-subitem:nth-child(3) {
+                grid-column: auto;
+                width: auto;
+                margin-inline: 0;
+            }
+        }
+
+        .vertical-subitems.single {
+            grid-template-columns: 1fr;
+        }
+
+        .outcome-subitem {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 10px;
+            border: 1px solid rgba(0, 188, 235, 0.28);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: center;
+            min-height: 48px;
+        }
+
+        .outcome-subitem::before {
+            content: none;
+        }
+
+        .outcome-subitem:hover {
+            transform: translateX(3px);
+            border-color: var(--cisco-blue);
+            background: rgba(0, 188, 235, 0.08);
+        }
+
+        .bubble { 
+            display: none; 
+            position: fixed; 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            color: #ffffff; 
+            padding: 10px; 
+            border-radius: 16px; 
+            z-index: 1000; 
+            width: 280px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8); 
+            border: 1px solid rgba(0, 188, 235, 0.5);
+            pointer-events: auto;
+        }
+        .bubble h3 {
+            margin: 0 0 10px 0;
+            color: var(--cisco-blue);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+            font-size: 1.2rem;
+        }
+        .bubble p {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .link-container {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .link-container.is-visible {
+            display: flex;
+        }
+        .bubble a {
+            color: #ffffff;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px solid var(--cisco-blue);
+            background: rgba(0, 188, 235, 0.1);
+            padding: 5px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .bubble a:hover {
+            background: var(--cisco-blue);
+            color: #000000;
+            box-shadow: 0 0 15px var(--cisco-blue);
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .enabler-diagram {
+                --diagram-scale: min(0.572, calc((100vw - 120px) / 1920));
+            }
+
+            .canvas-scaler {
+                height: calc(1080px * var(--diagram-scale));
+            }
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.8rem; padding: 36px 20px 32px; }
+            .section-title { font-size: 1.25rem; }
+            .enabler-label { font-size: 0.9rem; }
+            .enabler-label--left { left: 6px; }
+            .enabler-label--right { right: 0; transform: translateY(-50%) translateX(36px); }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Cisco Intelligent Workplace Experiences</h1>
+
+<div class="main-grid">
+    <section class="section-block enablers-panel">
+        <h2 class="section-title">Technology Enablers</h2>
+        <div class="outcome-group">
+            <div class="enabler-diagram">
+                <div class="enabler-label enabler-label--top enabler-label--zone">Building Systems (OT)</div>
+                <div class="enabler-diagram-row">
+                    <div class="canvas-scaler">
+                    <div class="enabler-label enabler-label--left enabler-label--zone"><span>IT Systems</span></div>
+                    <div class="enabler-label enabler-label--right enabler-label--zone"><span>Occupancy and Space Data</span></div>
+                    <div id="canvas">
+                <svg viewBox="0 0 1920 1080">
+                    <path id="path1" class="flow-line" d="M 760 450 V 135 H 333 V 75" />
+                    <path id="path2" class="flow-line" d="M 760 450 V 135 H 536 V 75" />
+                    <path id="path3" class="flow-line" d="M 760 450 V 135 H 739 V 75" />
+                    <path id="path4" class="flow-line" d="M 760 450 V 135 H 1145 V 75" />
+                    <path id="path5" class="flow-line" d="M 560 525 H 350 V 670 H 290" />
+                    <path id="path6" class="flow-line" d="M 760 450 V 135 H 130 V 75" />
+                    <path id="path9" class="flow-line" d="M 760 450 V 135 H 942 V 75" />
+                    <path id="path7" class="flow-line" d="M 560 525 H 350 V 390 H 290" />
+                    <path id="path8" class="flow-line" d="M 560 525 H 350 V 790 H 290" />
+                    <path id="path13" class="flow-line" d="M 560 525 H 350 V 260 H 290" />
+                    <path id="path14" class="flow-line" d="M 560 525 H 350 V 550 H 290" />
+                    <path id="path10" class="flow-line" d="M 960 525 H 1170 V 260 H 1235" />
+                    <path id="path11" class="flow-line" d="M 960 525 H 1170 V 430 H 1235" />
+                    <path id="path12" class="flow-line" d="M 960 525 H 1170 V 620 H 1235" />
+                    <path id="path-fmp" class="flow-line-green" d="M 760 720 V 600" />
+
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 333 V 75');" r="6" />
+                    <circle id="dot-light" class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 536 V 75');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 739 V 75');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 1145 V 75');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 560 525 H 350 V 670 H 290');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 130 V 75');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 760 450 V 135 H 942 V 75');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 560 525 H 350 V 390 H 290');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 560 525 H 350 V 790 H 290');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 560 525 H 350 V 260 H 290');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 560 525 H 350 V 550 H 290');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 960 525 H 1170 V 260 H 1235');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 960 525 H 1170 V 430 H 1235');" r="6" />
+                    <circle class="flow-dot animate-dot" style="offset-path: path('M 960 525 H 1170 V 620 H 1235');" r="6" />
+                    <circle class="flow-dot-green animate-dot-green" style="offset-path: path('M 760 720 V 600');" r="6" />
+                </svg>
+
+                <div id="switch" class="device" data-name="Cisco UPOE Switch">
+                    <img src="Images/merakims.png" alt="Cisco Switch">
+                </div>
+
+                <div class="device" style="left: 55px; top: -60px;" data-name="Meraki Camera"><img src="Images/MV13.png" alt="Meraki Camera"></div>
+                <div class="device" style="left: 258px; top: -60px;" data-name="IAQ Sensor"><img src="Images/mt15s.png" alt="IAQ Sensor"></div>
+                <div id="device-light" class="device" style="left: 461px; top: -60px;" data-name="LED Light">
+                    <img id="device-light-img" src="Images/ledglow.png" alt="LED Light">
+                </div>
+                <div class="device" style="left: 664px; top: -60px;" data-name="POE Gateway"><img src="Images/mht.png" alt="POE Gateway"></div>
+                <div class="device device-bms" style="left: 867px; top: -60px;" data-name="BMS System">
+                    <img src="Images/bms-system.png" alt="BMS System">
+                    <span class="device-tag">BMS</span>
+                </div>
+                <div class="device" style="left: 1070px; top: -60px;" data-name="POE Shade"><img src="Images/blind.png" alt="POE Shade"></div>
+
+                <div class="device" style="left: 140px; top: 180px;" data-name="Cisco Desk Series"><img src="Images/deskg2.png" alt="Desk Series"></div>
+                <div class="device" style="left: 140px; top: 340px;" data-name="Splunk Edge Hub"><img src="Images/edge.png" alt="Splunk Edge Hub"></div>
+                <div class="device device-sm" style="left: 140px; top: 500px;" data-name="Cisco Table Microphone Pro"><img src="Images/micpro.png" alt="Table Microphone Pro"></div>
+                <div class="device device-sm" style="left: 140px; top: 620px;" data-name="Cisco Wi-Fi 7 AP"><img src="Images/ap7.avif" alt="Wi-Fi 7 AP"></div>
+                <div class="device device-sm" style="left: 140px; top: 740px;" data-name="Cisco Room Vision PTZ Camera"><img src="Images/ptz.png" alt="Room Vision PTZ"></div>
+
+                <div class="device logo-box logo-box-green" style="left: 660px; top: 720px;" data-name="Fault Managed Power">
+                    <img src="Images/FMP.png" alt="FMP Logo">
+                </div>
+
+                <div class="device logo-box logo-box-spaces" style="left: 1185px; top: 155px;" data-name="Cisco Spaces">
+                    <img src="Images/cisco-spaces-logo.png" alt="Cisco Spaces">
+                </div>
+                <div class="device" style="left: 1220px; top: 340px;" data-name="Cisco Room Navigator"><img src="Images/roomnav.png" alt="Room Navigator"></div>
+                <div class="device" style="left: 1220px; top: 525px;" data-name="POE Powered Desk"><img src="Images/poedesk2.png" alt="POE Powered Desk"></div>
+                    </div>
+                    <div class="enabler-label enabler-label--anchored enabler-label--poe enabler-label--accent enabler-label--interactive" data-name="PoE">PoE</div>
+                    <div class="enabler-label enabler-label--anchored enabler-label--fmp enabler-label--zone">External data sources</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="enablers-footer">Powered by <span class="enablers-footer-accent" data-name="Cisco Secure Networking">Cisco Secure Networking</span></p>
+    </section>
+
+    <section class="section-block outcomes-panel">
+        <h2 class="section-title">Outcomes</h2>
+        <nav class="outcomes-tabs" role="tablist" aria-label="Outcomes views">
+            <button type="button" class="outcomes-tab active" role="tab" aria-selected="true" aria-controls="outcomes-vertical" data-outcomes-tab="vertical">Outcomes by vertical</button>
+            <button type="button" class="outcomes-tab" role="tab" aria-selected="false" aria-controls="outcomes-persona" data-outcomes-tab="persona">Outcomes by persona</button>
+        </nav>
+
+        <div class="outcomes-tab-panel active" id="outcomes-vertical" role="tabpanel" data-outcomes-panel="vertical">
+            <div class="outcome-group">
+                <div class="outcome-group-items">
+                <div class="vertical-block vertical-block--workplaces">
+                    <div class="vertical-header">
+                        <span class="outcome-icon" aria-hidden="true">🏙️</span>
+                        <span class="vertical-header-label">Workplaces</span>
+                    </div>
+                    <div class="vertical-subitems">
+                        <div class="outcome-subitem" data-name="Workplaces — AI Agent demo" data-href="../Outcome Demos/AI%20Agent%20-%20Real%20Estate/AI%20Demo%20CoreNet%20Munich%20v1.1.html">AI Agent demo</div>
+                        <div class="outcome-subitem" data-name="Workspaces Rich Map" data-href="https://workspaces.ciscospaces.io/?token=ccdb9eb1-8ee0-4c5d-a324-3699a69edaef">Workspaces Rich Map</div>
+                    </div>
+                </div>
+
+                <div class="vertical-block vertical-block--healthcare">
+                    <div class="vertical-header">
+                        <span class="outcome-icon" aria-hidden="true">🏥</span>
+                        <span class="vertical-header-label">Healthcare</span>
+                    </div>
+                    <div class="vertical-subitems">
+                        <div class="outcome-subitem" data-name="Healthcare — AI Agent demo" data-href="../Outcome Demos/Healthcare/Ai-Demo%20Healthcare.html">AI Agent demo</div>
+                        <div class="outcome-subitem" data-name="Healthcare Rich Map" data-href="https://event.ciscospaces.io/himss">Healthcare Rich Map</div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="outcomes-tab-panel" id="outcomes-persona" role="tabpanel" data-outcomes-panel="persona" hidden>
+            <div class="outcome-group">
+                <div class="outcome-group-items">
+                <div class="vertical-block vertical-block--real-estate">
+                    <div class="vertical-header">
+                        <span class="outcome-icon" aria-hidden="true">🏢</span>
+                        <span class="vertical-header-label">Real Estate</span>
+                    </div>
+                    <div class="vertical-subitems">
+                        <div class="outcome-subitem" data-name="Smart Room Digital Twin" data-href="../Outcome%20Demos/Spaces/Smart%20Room%20Digital%20Twin.html#twin">Smart Room Digital Twin</div>
+                        <div class="outcome-subitem" data-name="Building General Overview" data-href="https://cisco-salesbu-xarch.splunkcloud.com/en-US/account/login?return_to=%2Fen-US%2Fapp%2Fcisco_workplace_experiences%2Fbuilding_monitoring%3Fform.global_time.earliest%3D-24h%2540h%26form.global_time.latest%3Dnow%26tab%3Dlayout_1">Building General Overview</div>
+                    </div>
+                </div>
+
+                <div class="vertical-block vertical-block--sustainability">
+                    <div class="vertical-header">
+                        <span class="outcome-icon" aria-hidden="true">🌱</span>
+                        <span class="vertical-header-label">Sustainability / Compliance director</span>
+                    </div>
+                    <div class="vertical-subitems">
+                        <div class="outcome-subitem" data-name="WELL Dashboard" data-href="../Outcome%20Demos/WELL/Development/WELL_Compliance_Dashboard.html">WELL Dashboard</div>
+                        <div class="outcome-subitem" data-name="Generate Compliance Report" data-href="../Outcome%20Demos/WELL/eu_data_center_compliance_report.pdf">Generate Compliance Report</div>
+                        <div class="outcome-subitem" data-name="EU EED Compliance Monitoring" data-href="../Outcome%20Demos/WELL/Development/EU%20EED%20Compliance%20Monitoring.html">EU EED Compliance Monitoring</div>
+                    </div>
+                </div>
+
+                <div class="outcome-item outcome-item--facilities" data-name="Facilities / BMS Operator" data-href="../Outcome%20Demos/Spaces/Smart%20Room%20Digital%20Twin.html#persona">
+                    <span class="outcome-icon" aria-hidden="true">🔧</span>
+                    <span class="outcome-label">Facilities / BMS Operator</span>
+                </div>
+
+                <div class="outcome-item outcome-item--it-network" data-name="IT / Network owner" data-href="../Outcome%20Demos/Spaces/Smart%20Room%20Digital%20Twin.html#persona">
+                    <span class="outcome-icon" aria-hidden="true">🌐</span>
+                    <span class="outcome-label">IT / Network owner</span>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="outcomes-footer">Powered by <span class="outcomes-footer-accent" data-name="Cisco Data Fabric">Cisco Data Fabric</span></p>
+    </section>
+</div>
+
+<div id="bubble" class="bubble">
+    <h3 id="b-name">Product Name</h3>
+    <p id="b-desc">Description will appear here.</p>
+    <div id="b-link-container" class="link-container">
+        <a id="b-link" href="#" target="_blank" rel="noopener noreferrer">View Product Page →</a>
+        <a id="b-demo-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">View Demo Link →</a>
+    </div>
+</div>
+
+<script>
+    const productInfo = {
+        "Cisco UPOE Switch": {
+            desc: "Catalyst 9000 series providing high-density UPOE power for converged IT/OT networks.",
+            url: "https://www.cisco.com/c/en/us/products/switches/catalyst-9300-series-switches/index.html"
+        },
+        "IAQ Sensor": {
+            desc: "Meraki sensors monitoring indoor air quality for WELL building standards.",
+            url: "https://www.cisco.com/site/us/en/products/security/physical-security/meraki-sensors/index.html"
+        },
+        "LED Light": {
+            desc: "PoE-powered lighting solution demonstrating granular control and energy efficiency.",
+            url: "https://www.cisco.com/site/us/en/learn/topics/networking/what-is-poe-lighting.html"
+        },
+        "POE Shade": {
+            desc: "Network-controlled window shades for automated daylight harvesting.",
+            url: "https://www.cisco.com/c/en/us/td/docs/engineering_alliances/Cisco_MHT_Implementation_Guide.html"
+        },
+        "POE Gateway": {
+            desc: "POE Gateway bridging lighting and building automation systems to the Cisco network.",
+            url: "https://www.cisco.com/c/en/us/td/docs/engineering_alliances/Cisco_MHT_Implementation_Guide.html"
+        },
+        "BMS System": {
+            desc: "Building Management System integrations for intelligently aware of occupancy and environment to automatically adjusts HVAC, Lighting, and Shades.",
+            url: "https://spaces.cisco.com/smart-rooms/"
+        },
+        "Cisco Wi-Fi 7 AP": {
+            desc: "Next-generation wireless connectivity for high-density smart building environments.",
+            url: "https://www.cisco.com/c/en/us/products/wireless/access-points/index.html"
+        },
+        "Meraki Camera": {
+            desc: "Cisco smart cameras providing physical security and space utilization analytics.",
+            url: "https://meraki.cisco.com/products/smart-cameras/"
+        },
+        "Splunk Edge Hub": {
+            desc: "Edge computing device for real-time building telemetry and observability.",
+            url: "https://www.splunk.com/en_us/solutions/operational-technology-intelligence.html"
+        },
+        "POE Powered Desk": {
+            desc: "PoE Desk integrating power, data, and connectivity into one streamlined solution.",
+            url: "https://mht-technologies.com/poe-powered-desks-in-cisco-offices/"
+        },
+        "Cisco Table Microphone Pro": {
+            desc: "Intelligent multi-element microphone for high-fidelity audio collaboration.",
+            url: "https://www.webex.com/us/en/devices/accessories/cisco-table-microphone-pro.html"
+        },
+        "Cisco Room Vision PTZ Camera": {
+            desc: "4K Pan-Tilt-Zoom camera providing intelligent tracking for hybrid workspaces.",
+            url: "https://www.webex.com/us/en/devices/cameras/cisco-room-vision-ptz-camera.html"
+        },
+        "Cisco Room Navigator": {
+            desc: "Touch controller for room booking, smart room controls, and environmental sensor data.",
+            url: "https://www.webex.com/us/en/devices/accessories/cisco-room-navigator-for-wall.html"
+        },
+        "Cisco Desk Series": {
+            desc: "All-in-one interactive collaboration devices built for hybrid work.",
+            url: "https://www.webex.com/us/en/devices/desk-series/cisco-desk-pro.html"
+        },
+        "Cisco Spaces": {
+            desc: "Cisco Spaces cloud platform for location analytics and smart workspace services.",
+            url: "https://spaces.cisco.com"
+        },
+        "Fault Managed Power": {
+            desc: "FMP delivers DC power over long distances using pulse monitored current for safe delivery.",
+            url: "https://online.flippingbook.com/view/906766654/",
+            demoUrl: "../Outcome Demos/FMP/fmps_simulator.html"
+        },
+        "Facilities / BMS Operator": "Unified visibility across HVAC, power, and building systems with faster triage and automated remediation workflows.",
+        "Real Estate": "Portfolio-level utilization, cost optimization, and data-driven decisions on space design and investment.",
+        "Smart Room Digital Twin": "Interactive digital twin of meeting and workspace rooms with live occupancy, comfort, and utilization outcomes.",
+        "Building General Overview": "Portfolio and building-level dashboard with utilization, occupancy, environmental health, and operational KPIs across the estate.",
+        "IT / Network owner": "Secure, scalable network and device management across the intelligent workplace estate.",
+        "Sustainability / Compliance director": "WELL-aligned environmental monitoring, compliance reporting, and sustainability KPI tracking.",
+        "WELL Dashboard": "Real-time WELL v2 compliance dashboard with environmental metrics, concept scores, and trend analysis.",
+        "EU EED Compliance Monitoring": "Live EU EED and EnEfG data centre compliance dashboard — PUE, WUE, ERF, renewable share, and regulatory submission pipeline.",
+        "Generate Compliance Report": "Executive EU data centre compliance report for EnEfG and EED regulatory filing and audit.",
+        "Workplaces — AI Agent demo": "Live AI agent for intelligent workplace investigation — energy, comfort, cleaning, and root-cause analysis across building systems.",
+        "Workspaces Rich Map": "Interactive workspace digital twin with live occupancy, environmental metrics, and room-level outcomes.",
+        "Healthcare — AI Agent demo": "AI-driven operational intelligence for connected hospital and clinical environments.",
+        "Healthcare Rich Map": "Facility-wide healthcare rich map for space, assets, and patient-flow oriented outcomes.",
+        "Cisco Data Fabric": "Including data from IT Systems, Building Systems, Spaces data and other external data sources",
+        "Cisco Secure Networking": "Integrated architecture that fuses advanced networking infrastructure with built-in cybersecurity to safely connect users, devices, and applications.",
+        "PoE": "Power over Ethernet — delivering both high-speed data and electric power over a single network cable."
+    };
+
+    function getProductData(name) {
+        const data = productInfo[name];
+        if (!data) {
+            return {
+                desc: "Advanced Cisco Intelligent Workplace solution.",
+                url: "https://www.cisco.com",
+                demoUrl: null
+            };
+        }
+        if (typeof data === "string") {
+            return { desc: data, url: null, demoUrl: null };
+        }
+        return {
+            desc: data.desc,
+            url: data.url || null,
+            demoUrl: data.demoUrl || null
+        };
+    }
+
+    function populateBubble(name, showLinks) {
+        const data = getProductData(name);
+        document.getElementById("b-name").innerText = name;
+        document.getElementById("b-desc").innerText = data.desc;
+
+        const linkContainer = document.getElementById("b-link-container");
+        const productLink = document.getElementById("b-link");
+        const demoLink = document.getElementById("b-demo-link");
+
+        if (showLinks && data.url) {
+            linkContainer.classList.add("is-visible");
+            productLink.href = data.url;
+            if (data.demoUrl) {
+                demoLink.href = data.demoUrl;
+                demoLink.style.display = "inline-block";
+            } else {
+                demoLink.style.display = "none";
+            }
+        } else {
+            linkContainer.classList.remove("is-visible");
+            demoLink.style.display = "none";
+        }
+    }
+
+    let lightIsOn = true;
+    setInterval(() => {
+        const lightImg = document.getElementById('device-light-img');
+        const flowDot = document.getElementById('dot-light');
+        if (lightIsOn) {
+            lightImg.src = "Images/led.png";
+            flowDot.classList.add('dot-hidden');
+        } else {
+            lightImg.src = "Images/ledglow.png";
+            flowDot.classList.remove('dot-hidden');
+        }
+        lightIsOn = !lightIsOn;
+    }, 15000);
+
+    document.querySelectorAll('.outcomes-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const panelId = tab.getAttribute('data-outcomes-tab');
+            document.querySelectorAll('.outcomes-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            document.querySelectorAll('.outcomes-tab-panel').forEach(p => {
+                p.classList.remove('active');
+                p.hidden = true;
+            });
+            tab.classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
+            const panel = document.querySelector('[data-outcomes-panel="' + panelId + '"]');
+            if (panel) {
+                panel.classList.add('active');
+                panel.hidden = false;
+            }
+        });
+    });
+
+    function positionBubbleInViewport(bubble, left, top) {
+        const margin = 12;
+        bubble.style.display = 'block';
+        const bubbleRect = bubble.getBoundingClientRect();
+        const maxLeft = window.innerWidth - bubbleRect.width - margin;
+        const maxTop = window.innerHeight - bubbleRect.height - margin;
+        bubble.style.left = Math.max(margin, Math.min(left, maxLeft)) + 'px';
+        bubble.style.top = Math.max(margin, Math.min(top, maxTop)) + 'px';
+    }
+
+    function positionBubbleAboveElement(bubble, element) {
+        const margin = 12;
+        const rect = element.getBoundingClientRect();
+        bubble.style.display = 'block';
+        const bubbleRect = bubble.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - bubbleRect.width / 2;
+        let top = rect.top - bubbleRect.height - margin;
+        if (top < margin) {
+            top = rect.bottom + margin;
+        }
+        positionBubbleInViewport(bubble, left, top);
+    }
+
+    document.querySelectorAll('.outcomes-footer-accent, .enablers-footer-accent, .enabler-label--interactive').forEach(accent => {
+        accent.addEventListener('mouseenter', () => {
+            const bubble = document.getElementById('bubble');
+            const name = accent.getAttribute('data-name');
+            populateBubble(name, false);
+            positionBubbleAboveElement(bubble, accent);
+        });
+
+        accent.addEventListener('mouseleave', () => {
+            document.getElementById('bubble').style.display = 'none';
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        const bubble = document.getElementById('bubble');
+        const device = e.target.closest('.device');
+        const outcome = e.target.closest('.outcome-item');
+        const subitem = e.target.closest('.outcome-subitem');
+
+        if (subitem) {
+            const href = subitem.getAttribute('data-href');
+            if (href) {
+                window.open(href, '_blank', 'noopener,noreferrer');
+                bubble.style.display = 'none';
+                return;
+            }
+        }
+
+        if (outcome) {
+            const href = outcome.getAttribute('data-href');
+            if (href) {
+                window.open(href, '_blank', 'noopener,noreferrer');
+                bubble.style.display = 'none';
+                return;
+            }
+        }
+
+        if (device) {
+            const name = device.getAttribute('data-name');
+            populateBubble(name, true);
+            positionBubbleInViewport(bubble, e.clientX + 12, e.clientY + 12);
+        } else if (!e.target.closest('#bubble')) {
+            bubble.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>

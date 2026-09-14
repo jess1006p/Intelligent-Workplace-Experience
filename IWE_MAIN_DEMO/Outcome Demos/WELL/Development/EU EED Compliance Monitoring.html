@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EU EED &amp; EnEfG Compliance Monitoring Dashboard</title>
+    <style>
+        @font-face {
+            font-family: 'CiscoSansTT';
+            src: local('CiscoSansTT'), local('Arial');
+        }
+
+        :root {
+            --iwe-bg-top: #070b16;
+            --iwe-bg-mid: #0c1428;
+            --iwe-bg-bottom: #3a1c24;
+            --iwe-surface: rgba(255, 255, 255, 0.03);
+            --iwe-surface-raised: rgba(255, 255, 255, 0.06);
+            --iwe-border: rgba(0, 188, 235, 0.18);
+            --iwe-border-strong: rgba(0, 188, 235, 0.35);
+            --iwe-text: #ffffff;
+            --iwe-text-muted: rgba(255, 255, 255, 0.65);
+            --iwe-text-soft: rgba(255, 255, 255, 0.85);
+
+            --cisco-blue: #00bceb;
+            --cisco-dark-blue: #0088b0;
+            --cisco-teal: #00bceb;
+            --cisco-green: #86BE5B;
+            --cisco-orange: #FF8300;
+            --cisco-red: #E2231A;
+            --cisco-light-gray: var(--iwe-surface-raised);
+            --cisco-medium-gray: var(--iwe-text-muted);
+            --cisco-dark-gray: var(--iwe-text-soft);
+            --cisco-white: var(--iwe-surface);
+            --header-footer-gradient: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            --well-green: #22C55E;
+            --well-amber: #F59E0B;
+            --well-red: #EF4444;
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            --card-shadow-hover: 0 12px 40px rgba(0, 188, 235, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'CiscoSansTT', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom, var(--iwe-bg-top) 0%, var(--iwe-bg-mid) 50%, var(--iwe-bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--iwe-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header — IWE dark shell */
+        header {
+            background: transparent;
+            color: white;
+            padding: 24px 48px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--iwe-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: none;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .cisco-logo-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .cisco-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .header-divider {
+            width: 2px;
+            height: 48px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--cisco-blue);
+        }
+
+        .header-subtitle {
+            font-size: 15px;
+            opacity: 0.9;
+            max-width: 720px;
+        }
+
+        .event-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.25);
+            white-space: nowrap;
+        }
+
+        /* Main layout */
+        main {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 32px 48px 48px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+            background: var(--cisco-white);
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+        }
+
+        .toolbar-left {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .toolbar label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cisco-medium-gray);
+        }
+
+        .toolbar select {
+            padding: 10px 14px;
+            border: 1px solid var(--iwe-border-strong);
+            border-radius: 6px;
+            font-size: 15px;
+            background: var(--iwe-surface-raised);
+            color: var(--iwe-text);
+            min-width: 160px;
+        }
+
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(34,197,94,0.12);
+            color: #15803d;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--well-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .updated-at {
+            font-size: 13px;
+            color: var(--cisco-medium-gray);
+        }
+
+        .dashboard-title-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title-row h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cisco-dark-blue);
+        }
+
+        .dashboard-stream {
+            font-size: 13px;
+            color: var(--cisco-medium-gray);
+            font-weight: 600;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .meta-item {
+            background: var(--cisco-white);
+            border: 1px solid var(--iwe-border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--cisco-medium-gray);
+            margin-bottom: 6px;
+        }
+
+        .meta-item .meta-value {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cisco-dark-gray);
+            line-height: 1.35;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1100px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--cisco-medium-gray);
+            margin-top: 10px;
+            line-height: 1.45;
+        }
+
+        .stat-sub.positive { color: #15803d; font-weight: 600; }
+
+        .section-block {
+            margin-bottom: 32px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--cisco-light-gray);
+            color: var(--cisco-medium-gray);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--iwe-border);
+            vertical-align: middle;
+        }
+
+        .data-table tr:last-child td { border-bottom: none; }
+
+        .data-table .num {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .spl-panel {
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: #0f172a;
+            color: #cbd5e1;
+            border-radius: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            border: 1px solid rgba(4, 159, 217, 0.25);
+        }
+
+        .spl-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--cisco-medium-gray);
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .pipeline-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(34, 197, 94, 0.15);
+            color: #15803d;
+        }
+
+        .telemetry-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .telemetry-status.validated {
+            background: rgba(34, 197, 94, 0.15);
+            color: #15803d;
+        }
+
+        .telemetry-status.active {
+            background: rgba(4, 159, 217, 0.12);
+            color: var(--cisco-blue);
+        }
+
+        .telemetry-status.offtake {
+            background: rgba(108, 192, 74, 0.15);
+            color: #3d7a1e;
+        }
+
+        .hero-score {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 28px 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .hero-score::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--cisco-green), var(--cisco-blue));
+        }
+
+        .score-ring {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-ring-value {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-ring-value .num {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+            line-height: 1;
+        }
+
+        .score-ring-value .unit {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+        }
+
+        .hero-score-text h2 {
+            font-size: 22px;
+            color: var(--cisco-dark-blue);
+            margin-bottom: 8px;
+        }
+
+        .hero-score-text p {
+            font-size: 15px;
+            color: var(--cisco-medium-gray);
+            margin-bottom: 12px;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(4,159,217,0.12);
+            color: var(--cisco-blue);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stat-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--iwe-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: var(--cisco-blue);
+        }
+
+        .stat-card.status-good::before { background: var(--well-green); }
+        .stat-card.status-warn::before { background: var(--well-amber); }
+        .stat-card.status-bad::before { background: var(--well-red); }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--cisco-blue);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+            margin-bottom: 4px;
+            line-height: 1.1;
+        }
+
+        .stat-value .suffix {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            color: var(--cisco-medium-gray);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            font-size: 13px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .stat-trend.up { color: var(--well-green); }
+        .stat-trend.down { color: var(--well-red); }
+        .stat-trend.flat { color: var(--cisco-medium-gray); }
+
+        /* Section titles */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-header h3 {
+            font-size: 20px;
+            color: var(--cisco-dark-blue);
+            font-weight: 700;
+        }
+
+        .section-header span {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+        }
+
+        /* WELL concepts grid */
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .concept-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .concept-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .concept-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .concept-icon {
+            font-size: 24px;
+        }
+
+        .concept-pct {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cisco-blue);
+        }
+
+        .concept-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cisco-dark-gray);
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .progress-fill.good { background: var(--well-green); }
+        .progress-fill.warn { background: var(--well-amber); }
+        .progress-fill.bad { background: var(--well-red); }
+
+        .concept-meta {
+            font-size: 11px;
+            color: var(--cisco-medium-gray);
+            margin-top: 8px;
+        }
+
+        /* Two-column panels — metrics panel wider for trend sparklines */
+        .panels-row {
+            display: grid;
+            grid-template-columns: minmax(0, 2.25fr) minmax(260px, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 960px) {
+            .panels-row { grid-template-columns: 1fr; }
+        }
+
+        .panel-metrics {
+            min-width: 0;
+        }
+
+        .panel {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--iwe-border);
+        }
+
+        .panel h4 {
+            font-size: 17px;
+            color: var(--cisco-dark-blue);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--cisco-light-gray);
+        }
+
+        /* Environmental metrics table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        .metrics-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--cisco-light-gray);
+            color: var(--cisco-medium-gray);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .metrics-table .col-metric { width: 26%; }
+        .metrics-table .col-value { width: 14%; }
+        .metrics-table .col-target { width: 14%; }
+        .metrics-table .col-status { width: 14%; }
+        .metrics-table .col-trend {
+            width: 32%;
+            min-width: 220px;
+        }
+
+        .metrics-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--iwe-border);
+            vertical-align: middle;
+        }
+
+        .metrics-table td.col-trend {
+            padding-right: 12px;
+        }
+
+        .trend-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trend-cell .sparkline {
+            flex: 1;
+            min-width: 120px;
+            max-width: none;
+        }
+
+        .btn-expand {
+            flex-shrink: 0;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--cisco-blue);
+            background: rgba(4, 159, 217, 0.08);
+            border: 1px solid rgba(4, 159, 217, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-expand:hover {
+            background: var(--cisco-blue);
+            color: white;
+            border-color: var(--cisco-blue);
+        }
+
+        .btn-expand:focus-visible {
+            outline: 2px solid var(--cisco-teal);
+            outline-offset: 2px;
+        }
+
+        .metrics-table tr:last-child td { border-bottom: none; }
+
+        .metric-name { font-weight: 600; color: var(--cisco-dark-gray); }
+        .metric-well { font-size: 12px; color: var(--cisco-medium-gray); }
+
+        .status-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-chip.compliant { background: rgba(34,197,94,0.15); color: #15803d; }
+        .status-chip.monitor { background: rgba(245,158,11,0.15); color: #b45309; }
+        .status-chip.action { background: rgba(239,68,68,0.15); color: #b91c1c; }
+
+        /* Sparkline bars */
+        .sparkline {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            width: 100%;
+            min-width: 200px;
+            max-width: 320px;
+        }
+
+        .spark-bar {
+            flex: 1;
+            min-width: 6px;
+            background: var(--cisco-teal);
+            border-radius: 2px 2px 0 0;
+            opacity: 0.7;
+            transition: height 0.3s;
+        }
+
+        .spark-bar:last-child {
+            opacity: 1;
+            background: var(--cisco-blue);
+        }
+
+        /* Alerts list */
+        .alert-list { list-style: none; }
+
+        .alert-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--iwe-border);
+            align-items: flex-start;
+        }
+
+        .alert-item:last-child { border-bottom: none; }
+
+        .alert-severity {
+            flex-shrink: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 6px;
+        }
+
+        .alert-severity.high { background: var(--well-red); }
+        .alert-severity.medium { background: var(--well-amber); }
+        .alert-severity.low { background: var(--cisco-blue); }
+
+        .alert-body strong {
+            display: block;
+            font-size: 14px;
+            color: var(--cisco-dark-gray);
+            margin-bottom: 4px;
+        }
+
+        .alert-body span {
+            font-size: 13px;
+            color: var(--cisco-medium-gray);
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* Zone cards */
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .zone-card {
+            background: var(--cisco-white);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--iwe-border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .zone-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--cisco-dark-blue);
+        }
+
+        .zone-score {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .zone-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .zone-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .zone-metric label { color: var(--cisco-medium-gray); }
+        .zone-metric value { font-weight: 600; }
+
+        /* Workspace device diagram */
+        .diagram-section {
+            margin-top: 32px;
+            margin-bottom: 32px;
+        }
+
+        .diagram-panel {
+            background: var(--cisco-white);
+            border: 1px solid var(--iwe-border);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .diagram-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--cisco-dark-blue), var(--cisco-blue));
+        }
+
+        .diagram-panel-header {
+            padding: 24px 28px 0;
+        }
+
+        .diagram-panel-header h3 {
+            font-size: 20px;
+            color: var(--cisco-dark-blue);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .diagram-panel-header p {
+            font-size: 14px;
+            color: var(--cisco-medium-gray);
+            max-width: 900px;
+        }
+
+        .diagram-frame {
+            margin: 20px 28px 28px;
+            padding: 16px;
+            background: linear-gradient(160deg, #0a1f3d 0%, #0D274D 45%, #123a5c 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(4, 159, 217, 0.25);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        .diagram-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .diagram-caption {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 28px 24px;
+        }
+
+        .diagram-tag {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(4, 159, 217, 0.1);
+            color: var(--cisco-blue);
+            border: 1px solid rgba(4, 159, 217, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .diagram-frame {
+                margin: 16px 16px 20px;
+                padding: 10px;
+            }
+
+            .diagram-panel-header {
+                padding: 20px 20px 0;
+            }
+
+            .diagram-caption {
+                padding: 0 20px 20px;
+            }
+        }
+
+        /* Data sources footer strip */
+        .sources-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--cisco-white);
+            border-radius: 8px;
+            border: 1px solid var(--iwe-border);
+            margin-bottom: 32px;
+        }
+
+        .source-tag {
+            font-size: 12px;
+            padding: 6px 12px;
+            background: var(--cisco-light-gray);
+            border-radius: 6px;
+            color: var(--cisco-medium-gray);
+            font-weight: 500;
+        }
+
+        .source-tag strong { color: var(--cisco-dark-gray); }
+
+        /* Footer — IWE dark shell */
+        footer {
+            background: transparent;
+            color: white;
+            padding: 48px 48px 32px;
+            margin-top: 64px;
+            text-align: center;
+            border-top: 1px solid var(--iwe-border);
+        }
+
+        .footer-logo {
+            display: block;
+            height: 56px;
+            width: auto;
+            margin: 0 auto 16px;
+            object-fit: contain;
+        }
+
+        .footer-event {
+            opacity: 0.9;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* IWE dark shell overrides */
+        .toolbar,
+        .hero-score,
+        .stat-card,
+        .concept-card,
+        .panel,
+        .zone-card,
+        .diagram-panel,
+        .sources-strip,
+        .meta-item {
+            border-color: var(--iwe-border) !important;
+            border-radius: 14px;
+        }
+
+        .toolbar select {
+            background: var(--iwe-surface-raised);
+            border-color: var(--iwe-border-strong);
+            color: var(--iwe-text);
+        }
+
+        .live-pill {
+            color: #86efac;
+        }
+
+        .hero-score-text h2,
+        .section-header h3,
+        .panel h4,
+        .dashboard-title-row h1 {
+            color: var(--cisco-blue);
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .metrics-table td {
+            border-bottom-color: var(--iwe-border);
+        }
+
+        .status-chip.compliant { color: #86efac; }
+        .status-chip.monitor { color: #fcd34d; }
+        .status-chip.action { color: #fca5a5; }
+
+        .alert-item {
+            border-bottom-color: var(--iwe-border);
+        }
+
+        .diagram-frame {
+            background: var(--iwe-surface-raised);
+            border-color: var(--iwe-border);
+        }
+
+        .data-table td {
+            border-bottom-color: var(--iwe-border);
+        }
+
+        .stat-sub.positive,
+        .pipeline-status,
+        .telemetry-status.validated {
+            color: #86efac;
+        }
+
+        .telemetry-status.offtake {
+            color: #a3e635;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="cisco-logo-section">
+                <img class="cisco-logo" src="cisco-logo.png" alt="Cisco">
+                <div class="header-divider"></div>
+                <div class="header-text">
+                    <div class="header-title">EU EED &amp; EnEfG Compliance Monitoring</div>
+                    <div class="header-subtitle">Splunk Enterprise dashboard — data centre environmental telemetry &amp; regulatory submission pipeline</div>
+                </div>
+            </div>
+            <div class="event-badge">
+                CoreNet Global Summit EMEA 2026 • Munich
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-title-row">
+            <h1>splunk&gt; enterprise EU EED &amp; EnEfG Compliance Monitoring Dashboard</h1>
+            <div class="dashboard-stream">● LIVE STREAMING | App: Environmental_Telemetry_v3 | User: m.vance@nexuscloud.eu</div>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-item">
+                <label>Time Range</label>
+                <span class="meta-value">Last 365 Days (2025 YTD)</span>
+            </div>
+            <div class="meta-item">
+                <label>Facility ID</label>
+                <span class="meta-value">EED-DE-8839201 (Frankfurt DC-04)</span>
+            </div>
+            <div class="meta-item">
+                <label>Regulatory Mandate</label>
+                <span class="meta-value">EED Reg 2024/1364 + EnEfG</span>
+            </div>
+            <div class="meta-item">
+                <label>Data Ingestion Index</label>
+                <span class="meta-value">index=dc_telemetry_prod</span>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <label for="facility-select">Facility</label>
+                <select id="facility-select">
+                    <option value="frankfurt-dc04">Frankfurt DC-04 — EED-DE-8839201</option>
+                </select>
+                <div class="live-pill">
+                    <span class="live-dot"></span>
+                    Live streaming
+                </div>
+            </div>
+            <div class="updated-at" id="updated-at">Last updated: —</div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="stat-card status-good">
+                <div class="stat-value" style="font-size:36px;">1.24</div>
+                <div class="stat-label">Power Usage Effectiveness (PUE)</div>
+                <div class="stat-sub positive">▼ -0.03 vs 2024 | Target: ≤ 1.30</div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" style="font-size:32px;">0.18<span class="suffix"> L/kWh</span></div>
+                <div class="stat-label">Water Usage Effectiveness (WUE)</div>
+                <div class="stat-sub">Optimal | Dry Adiabatic Active</div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" style="font-size:36px;">11.4<span class="suffix">%</span></div>
+                <div class="stat-label">Energy Reuse Factor (ERF)</div>
+                <div class="stat-sub">8,259.3 MWh Heat Transferred</div>
+            </div>
+            <div class="stat-card status-good">
+                <div class="stat-value" style="font-size:36px;">100<span class="suffix">%</span></div>
+                <div class="stat-label">Renewable Energy Share</div>
+                <div class="stat-sub">PPA + Guarantees of Origin</div>
+            </div>
+        </div>
+
+        <div class="section-block panel">
+            <div class="section-header">
+                <h3>Energy Consumption &amp; Heat Balance (MWh)</h3>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Telemetry Source</th>
+                        <th>MWh (YTD)</th>
+                        <th>ISO / Meter ID</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Facility Energy Input (<em>E<sub>DC</sub></em>)</td>
+                        <td class="num">72,450.00</td>
+                        <td>GRID-MTR-01</td>
+                        <td><span class="telemetry-status validated">VALIDATED</span></td>
+                    </tr>
+                    <tr>
+                        <td>IT Equipment Load (<em>E<sub>IT</sub></em>)</td>
+                        <td class="num">58,427.42</td>
+                        <td>UPS-OUT-AGG</td>
+                        <td><span class="telemetry-status validated">VALIDATED</span></td>
+                    </tr>
+                    <tr>
+                        <td>Cooling Plant Load</td>
+                        <td class="num">9,820.10</td>
+                        <td>CHIL-MTR-01..04</td>
+                        <td><span class="telemetry-status active">ACTIVE</span></td>
+                    </tr>
+                    <tr>
+                        <td>Auxiliaries &amp; Lighting</td>
+                        <td class="num">4,202.48</td>
+                        <td>PDU-AUX-MAIN</td>
+                        <td><span class="telemetry-status active">ACTIVE</span></td>
+                    </tr>
+                    <tr>
+                        <td>Exported Waste Heat</td>
+                        <td class="num">8,259.30</td>
+                        <td>HEAT-X-TOWN01</td>
+                        <td><span class="telemetry-status offtake">OFF-TAKING</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="spl-label">Underlying Splunk Search (SPL)</div>
+            <div class="spl-panel">index=dc_telemetry_prod facility_id="EED-DE-8839201"
+| stats sum(kwh_val) as total_kwh by metric_type
+| eval MWh=round(total_kwh/1000, 2) | table metric_type, MWh</div>
+        </div>
+
+        <div class="section-block panel">
+            <div class="section-header">
+                <h3>EED ICT Capacity &amp; Network Telemetry Summary</h3>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Metric Name</th>
+                        <th>Aggregated Value</th>
+                        <th>Unit</th>
+                        <th>Collection Pipeline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Active Physical Servers</td>
+                        <td class="num">14,280</td>
+                        <td>Units</td>
+                        <td>Colo Customer Portal API</td>
+                    </tr>
+                    <tr>
+                        <td>Raw Provisioned Storage</td>
+                        <td class="num">184.50</td>
+                        <td>PB</td>
+                        <td>Tenant Asset Registry</td>
+                    </tr>
+                    <tr>
+                        <td>Edge Router Interconnect</td>
+                        <td class="num">800.00</td>
+                        <td>Gbps</td>
+                        <td>SNMP Interface Poller</td>
+                    </tr>
+                    <tr>
+                        <td>Annual Ingress Volume</td>
+                        <td class="num">1.12</td>
+                        <td>EB</td>
+                        <td>NetFlow / sFlow Aggregator</td>
+                    </tr>
+                    <tr>
+                        <td>Annual Egress Volume</td>
+                        <td class="num">1.48</td>
+                        <td>EB</td>
+                        <td>NetFlow / sFlow Aggregator</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="spl-label">Underlying Splunk Search (SPL)</div>
+            <div class="spl-panel">index=dc_network_flow OR index=tenant_inventory
+| stats count(server_id) as servers, sum(bytes_in) as total_in
+| eval Ingress_EB=round(total_in/1e18, 2)</div>
+        </div>
+
+        <div class="section-block panel">
+            <div class="section-header">
+                <h3>Automated EU Regulatory Submission Pipeline</h3>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Target Framework</th>
+                        <th>Filing Agency</th>
+                        <th>Automated Deadline</th>
+                        <th>Data Payload Standard</th>
+                        <th>Export Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>German EnEfG §13 / §17</td>
+                        <td>BfEE (Federal Energy Office)</td>
+                        <td>March 31, 2026</td>
+                        <td>Structured CSV / API Payload</td>
+                        <td><span class="pipeline-status">EXPORT READY</span></td>
+                    </tr>
+                    <tr>
+                        <td>EU EED Reg 2024/1364</td>
+                        <td>European Database on Data Centres</td>
+                        <td>May 15, 2026</td>
+                        <td>XML / European Commission Schema</td>
+                        <td><span class="pipeline-status">EXPORT READY</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sources-strip">
+            <span class="source-tag"><strong>Sources:</strong></span>
+            <span class="source-tag">index=dc_telemetry_prod</span>
+            <span class="source-tag">index=dc_network_flow</span>
+            <span class="source-tag">index=tenant_inventory</span>
+            <span class="source-tag">SNMP Interface Poller</span>
+            <span class="source-tag">Colo Customer Portal API</span>
+            <span class="source-tag">NetFlow / sFlow Aggregator</span>
+        </div>
+    </main>
+
+    <footer>
+        <img class="footer-logo" src="cisco-logo.png" alt="Cisco">
+        <div class="footer-event">CoreNet Global Summit EMEA 2026 | Munich</div>
+    </footer>
+
+    <script>
+        function refreshDashboard() {
+            var now = new Date();
+            document.getElementById('updated-at').textContent =
+                'Last updated: ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        refreshDashboard();
+        setInterval(refreshDashboard, 8000);
+    </script>
+</body>
+</html>
