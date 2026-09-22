@@ -1371,49 +1371,6 @@
             line-height: 1.8;
         }
 
-        /* ── API Key banner ── */
-        .api-key-banner {
-            background: var(--iwe-surface);
-            border-bottom: 1px solid var(--iwe-border);
-            padding: 10px 32px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 17px;
-            color: var(--iwe-text-soft);
-            flex-wrap: wrap;
-        }
-        .api-key-banner label { font-weight: 700; white-space: nowrap; color: var(--iwe-text); }
-        .api-key-input {
-            flex: 1;
-            min-width: 260px;
-            max-width: 420px;
-            padding: 6px 12px;
-            border: 1px solid var(--iwe-border-strong);
-            border-radius: 6px;
-            font-size: 17px;
-            font-family: monospace;
-            background: var(--iwe-surface-raised);
-            color: var(--iwe-text);
-        }
-        .api-key-btn {
-            background: var(--cisco-blue);
-            color: #07182d;
-            border: none;
-            border-radius: 6px;
-            padding: 7px 18px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .api-key-btn:hover { background: #33c9f0; }
-        .api-key-saved {
-            color: var(--cisco-success-green);
-            font-weight: 700;
-            font-size: 16px;
-        }
-        .api-key-link { color: var(--cisco-blue); font-size: 16px; }
-
         /* ═══════════════════════════════════════════════════════
            BUILDING ECOSYSTEM DIAGRAM  –  AI Demo 8.1
            ═══════════════════════════════════════════════════════ */
@@ -1756,7 +1713,6 @@
         }
 
         .query-input,
-        .api-key-input,
         #demo-freeform .query-input {
             background: var(--iwe-surface-raised);
             border-color: var(--iwe-border-strong);
@@ -1863,20 +1819,6 @@
         </div>
     </header>
 
-
-    <!-- API Key Banner (only shown when key not set) -->
-    <div class="api-key-banner" id="api-key-banner">
-        <label>🔑 API Key (for Demos 5 &amp; 6):</label>
-        <input type="password" class="api-key-input" id="api-key-input"
-               placeholder="sk-ant-..."
-               onkeydown="if(event.key==='Enter') saveApiKey()">
-        <button class="api-key-btn" onclick="saveApiKey()">Save Key</button>
-        <span class="api-key-saved" id="api-key-saved" style="display:none">✓ Key saved for this session</span>
-        <span style="margin-left:auto; font-size:16px; opacity:0.7">
-            Key stored in memory only — never sent anywhere except the Anthropic API.
-            <a class="api-key-link" href="https://console.anthropic.com/settings/keys" target="_blank">Get a key →</a>
-        </span>
-    </div>
 
     <!-- Demo Selector Dropdown -->
     <div class="nav-bar">
@@ -5488,9 +5430,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                 try {
                     const apiKey = window._anthropicKey || '';
                     if (!apiKey) {
-                        document.getElementById('api-key-banner').style.background = 'rgba(226, 35, 26, 0.18)';
-                        document.getElementById('api-key-banner').style.borderColor = 'var(--cisco-error-red)';
-                        throw new Error('Please enter your Anthropic API key in the banner above to use Demo 5.');
+                        throw new Error('Live AI queries run on the local Cursor agent page at http://127.0.0.1:8787/Outcome_Demos/RealEstate/AI_Agent_Demo.html');
                     }
                     const apiResp = await fetch('https://api.anthropic.com/v1/messages', {
                         method: 'POST',
@@ -5636,20 +5576,6 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
         }
 
 
-        // ── API key management ───────────────────────────────────────
-        function saveApiKey() {
-            const val = document.getElementById('api-key-input').value.trim();
-            if (!val.startsWith('sk-ant-') && !val.startsWith('sk-')) {
-                alert('That doesn\'t look like a valid Anthropic API key. It should start with sk-ant-...');
-                return;
-            }
-            window._anthropicKey = val;
-            document.getElementById('api-key-saved').style.display = 'inline';
-            document.getElementById('api-key-input').value = '••••••••••••' + val.slice(-4);
-            document.getElementById('api-key-banner').style.background = 'rgba(134, 190, 91, 0.16)';
-            document.getElementById('api-key-banner').style.borderColor = 'var(--cisco-success-green)';
-        }
-
         window.addEventListener('load', () => {
             setTimeout(() => {
                 analyzeEnergy();
@@ -5745,9 +5671,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
 
             const apiKey = window._anthropicKey || '';
             if (!apiKey) {
-                document.getElementById('api-key-banner').style.background = 'rgba(226, 35, 26, 0.18)';
-                document.getElementById('api-key-banner').style.borderColor = 'var(--cisco-error-red)';
-                alert('Please enter your Anthropic API key in the banner at the top of the page.');
+                alert('Live AI queries run on the local Cursor agent page at http://127.0.0.1:8787/Outcome_Demos/RealEstate/AI_Agent_Demo.html');
                 return;
             }
 
