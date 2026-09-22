@@ -1921,7 +1921,7 @@
                             <span class="option-icon">✨</span>
                             <div class="option-text">
                                 <div class="option-title">Live AI Agent — Ask Anything</div>
-                                <div class="option-description">Type any building intelligence question and watch Claude reason live</div>
+                                <div class="option-description">Type any building intelligence question and watch Cursor agent reason live</div>
                             </div>
                         </div>
                         <div class="dropdown-option" onclick="selectDemo('splunk', '🏠 Live BMS — Home Assistant via Splunk MCP')" style="border-top: 2px solid rgba(4,159,217,0.3); margin-top:4px;">
@@ -4228,7 +4228,7 @@
                                     <div class="layer-number">3</div>
                                     <div class="layer-info">
                                         <div class="layer-title">AI Intelligence Layer</div>
-                                        <div class="layer-description">Splunk MCP + Claude AI reasons across all data sources to form and test a physical hypothesis</div>
+                                        <div class="layer-description">Splunk MCP + Cursor AI reasons across all data sources to form and test a physical hypothesis</div>
                                     </div>
                                 </div>
                                 <div class="layer-components">
@@ -4347,7 +4347,7 @@
                     </div>
                     <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
                                 color:#5a5a5a;margin-bottom:5px;">
-                        ✨ Live AI queries — powered by Claude API:
+                        ✨ Live AI queries — powered by Cursor API:
                     </div>
                     <div class="suggested-prompts">
                         <button class="prompt-chip" onclick="setPrompt('Which department has the highest number of ghost meetings?')">👻 Ghost meetings by dept</button>
@@ -5018,7 +5018,7 @@
                 'Running time-series anomaly detection on energy sub-metering data...',
                 'Performing causal chain analysis — occupancy → HVAC ramp → solar drop → grid draw...',
                 'Evaluating cascade effects across interconnected building systems...',
-                'Claude is reasoning across the correlated dataset...',
+                'Cursor is reasoning across the correlated dataset...',
                 'Identifying root cause and quantifying contribution of each factor...',
                 'Generating proactive recommendations with estimated cost impact...',
                 'Preparing unified answer with supporting evidence...'
@@ -5065,7 +5065,7 @@
                 'Running statistical comparison — actual usage vs scheduled cleaning frequency...',
                 'Performing resource allocation optimisation across zones and shifts...',
                 'Calculating cost-benefit projections for proposed schedule changes...',
-                'Claude is reasoning across the correlated dataset...',
+                'Cursor is reasoning across the correlated dataset...',
                 'Identifying underutilised zones and over-serviced areas...',
                 'Generating optimised cleaning schedule with savings estimates...',
                 'Preparing unified answer with supporting evidence...'
@@ -5113,7 +5113,7 @@
                 'Running predictive failure modelling on AHU-3 component degradation curve...',
                 'Performing root cause isolation — ruling out occupancy, thermostat, and refrigerant faults...',
                 'Estimating remaining useful life and calculating repair-vs-failure cost scenarios...',
-                'Claude is reasoning across the correlated dataset...',
+                'Cursor is reasoning across the correlated dataset...',
                 'Identifying equipment degradation patterns across similar AHUs...',
                 'Generating predictive maintenance schedule and cost-benefit analysis...',
                 'Preparing unified answer with supporting evidence...'
@@ -5180,7 +5180,7 @@
                 'Testing physical hypothesis — duct obstruction model vs observed pressure and temperature...',
                 'Ruling out alternative causes — equipment fault, occupant load, thermostat, refrigerant...',
                 'Calculating hypothesis confidence score from multi-source evidence chain...',
-                'Claude is assembling root cause narrative with technician dispatch recommendation...',
+                'Cursor is assembling root cause narrative with technician dispatch recommendation...',
                 'Generating autonomous actions and preventive detection rules...',
                 'Preparing unified answer with supporting evidence...'
             ], 1600);
@@ -5298,7 +5298,7 @@
             document.getElementById('freeform-query').focus();
         }
 
-        // Building context injected into every Claude call so responses feel grounded
+        // Building context injected into every Cursor call so responses feel grounded
         const BUILDING_CONTEXT = `
 You are an AI building intelligence agent for a 18-floor commercial office in Amsterdam (2,400 occupants, 14 departments). Data sources: Cisco Spaces (WiFi/occupancy), Splunk (unified IT+OT platform), ServiceNow (ITSM), BMS/HVAC, Schneider smart metering, access control, M365 room booking, air quality sensors (CO2/VOC/humidity).
 
@@ -5319,7 +5319,7 @@ When asked a question about the building, respond in this EXACT JSON format — 
   "arch_layers": [
     {"title": "Layer 1: Data Collection", "items": "bullet list of relevant data points collected"},
     {"title": "Layer 2: Splunk Normalisation", "items": "what Splunk correlated or normalised"},
-    {"title": "Layer 3: AI Reasoning", "items": "how Claude reasoned across the data"}
+    {"title": "Layer 3: AI Reasoning", "items": "how Cursor reasoned across the data"}
   ],
   "insights": "2-4 paragraphs of detailed analytical findings, using specific numbers, floor names, department names, times. Make it feel like real operational data. Include at least one surprising or non-obvious finding.",
   "recommendations": "3-5 specific, numbered, actionable recommendations with estimated impacts (cost savings, time savings, efficiency gains). Be concrete — name specific floors, departments, or time windows.",
@@ -5381,7 +5381,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                         'Running time-series anomaly detection on energy sub-metering data...',
                         'Performing causal chain analysis — occupancy → HVAC ramp → solar drop → grid draw...',
                         'Evaluating cascade effects across interconnected building systems...',
-                        'Claude is reasoning across the correlated dataset...',
+                        'Cursor is reasoning across the correlated dataset...',
                         'Identifying root cause and quantifying contribution of each factor...',
                         'Generating proactive recommendations with estimated cost impact...',
                         'Preparing unified answer with supporting evidence...'
@@ -5396,7 +5396,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                         'Running statistical comparison — actual usage vs scheduled cleaning frequency...',
                         'Performing resource allocation optimisation across zones and shifts...',
                         'Calculating cost-benefit projections for proposed schedule changes...',
-                        'Claude is reasoning across the correlated dataset...',
+                        'Cursor is reasoning across the correlated dataset...',
                         'Identifying underutilised zones and over-serviced areas...',
                         'Generating optimised cleaning schedule with savings estimates...',
                         'Preparing unified answer with supporting evidence...'
@@ -5412,7 +5412,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                         'Running predictive failure modelling on AHU-3 component degradation curve...',
                         'Performing root cause isolation — ruling out occupancy, thermostat, and refrigerant faults...',
                         'Estimating remaining useful life and calculating repair-vs-failure cost scenarios...',
-                        'Claude is reasoning across the correlated dataset...',
+                        'Cursor is reasoning across the correlated dataset...',
                         'Identifying equipment degradation patterns across similar AHUs...',
                         'Generating predictive maintenance schedule and cost-benefit analysis...',
                         'Preparing unified answer with supporting evidence...'
@@ -5442,7 +5442,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                 return; // skip API call entirely
             }
 
-            // ── No scenario match — fall through to live Claude API ──
+            // ── No scenario match — fall through to live Cursor API ──
 
             // Reset UI
             const btn = document.getElementById('freeform-btn');
@@ -5462,7 +5462,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                 'Querying Splunk MCP — searching across all building data sources...',
                 'Normalising timestamps across BMS, IT, and ITSM systems...',
                 'Correlating occupancy, energy, and booking data...',
-                'Claude is reasoning across the correlated dataset...',
+                'Cursor is reasoning across the correlated dataset...',
                 'Generating insights and recommendations...'
             ];
             let msgIdx = 0;
@@ -5592,7 +5592,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                 if (!freeformCancelled) {
                     const errorDiv = document.getElementById('ff-error');
                     errorDiv.style.display = 'block';
-                    errorDiv.textContent = '⚠ Could not connect to Claude API. ' + err.message;
+                    errorDiv.textContent = '⚠ Could not connect to Cursor API. ' + err.message;
                 }
             } finally {
                 btn.disabled = false;
@@ -5712,7 +5712,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
 
         // ═══════════════════════════════════════════════════════════
         // Demo 6: Live BMS — Home Assistant via Splunk MCP (Option B)
-        // Claude API + MCP tool call. No direct Splunk REST = no CORS.
+        // Cursor API + MCP tool call. No direct Splunk REST = no CORS.
         // ═══════════════════════════════════════════════════════════
 
         function setSplunkPrompt(text) {
@@ -5770,7 +5770,7 @@ Make all numbers specific and realistic. Do not be vague. Every insight should f
                 'Executing splunk_run_query against index=bms...',
                 'Retrieving live Home Assistant entity states...',
                 'Parsing BMS JSON payloads from Splunk...',
-                'Claude is reasoning across the live dataset...',
+                'Cursor is reasoning across the live dataset...',
                 'Generating insights from real data...'
             ];
             let tIdx = 0;
@@ -5808,7 +5808,7 @@ Use the splunk_run_query tool to fetch live data. Then respond ONLY in this JSON
   "answer_label": "Short answer box title"
 }`;
 
-                // Round 1: Ask Claude to call the tool
+                // Round 1: Ask Cursor to call the tool
                 const r1 = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
@@ -5843,15 +5843,15 @@ Use the splunk_run_query tool to fetch live data. Then respond ONLY in this JSON
                 if (d1.error) throw new Error(d1.error.message);
 
                 const toolBlock = (d1.content || []).find(b => b.type === 'tool_use' && b.name === 'splunk_run_query');
-                if (!toolBlock) throw new Error('Claude did not invoke the Splunk MCP tool. Response: ' + JSON.stringify(d1.content).substring(0,200));
+                if (!toolBlock) throw new Error('Cursor did not invoke the Splunk MCP tool. Response: ' + JSON.stringify(d1.content).substring(0,200));
 
-                // Show the SPL Claude chose
+                // Show the SPL Cursor chose
                 const chosenSPL = toolBlock.input.query || spl;
                 document.getElementById('splunk-spl-panel').textContent = '// SPL selected by AI Agent\n// Tool: splunk_run_query | Index: bms\n\n' + chosenSPL;
                 tEl.textContent = 'Splunk MCP tool invoked — fetching live data from index=bms...';
 
                 // Round 2: Execute the real Splunk query via our MCP server
-                // We use a second Claude call passing back real splunk results as tool_result
+                // We use a second Cursor call passing back real splunk results as tool_result
                 // Since we're in-browser we do this via the anthropic api tool_result flow,
                 // providing actual data we fetch from the Splunk MCP server connection.
                 // The MCP server IS connected server-side — we relay the result via the API.
