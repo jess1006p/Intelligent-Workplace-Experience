@@ -4710,14 +4710,14 @@
                           </div>
                           <div class="bn it">
                             <div class="bn-live">LIVE</div>
-                            <div class="bn-hdr"><span class="bn-ico">🧠</span><span class="bn-name">Claude AI Agent</span></div>
+                            <div class="bn-hdr"><span class="bn-ico">🧠</span><span class="bn-name">AI Agent</span></div>
                             <div class="bn-cat">AI · Reasoning Layer</div>
                             <div class="bn-feed">Model: <span class="fv">claude-sonnet-4</span><br>Tool: <span class="fv">splunk_run_query</span><br>Mode: <span class="fv">Agentic MCP</span></div>
                           </div>
                         </div>
                       </div>
                       <div class="beco-silo" style="border-color:rgba(125,194,76,0.3);background:rgba(125,194,76,0.06);color:rgba(125,194,76,0.88);">
-                        ✓ Live data path: Home Assistant → Splunk index=bms → Splunk MCP tool → Claude AI Agent → You
+                        ✓ Live data path: Home Assistant → Splunk index=bms → Splunk MCP tool → AI Agent → You
                       </div>
                     </div>
 
@@ -5847,7 +5847,7 @@ Use the splunk_run_query tool to fetch live data. Then respond ONLY in this JSON
 
                 // Show the SPL Claude chose
                 const chosenSPL = toolBlock.input.query || spl;
-                document.getElementById('splunk-spl-panel').textContent = '// SPL selected by Claude AI Agent\n// Tool: splunk_run_query | Index: bms\n\n' + chosenSPL;
+                document.getElementById('splunk-spl-panel').textContent = '// SPL selected by AI Agent\n// Tool: splunk_run_query | Index: bms\n\n' + chosenSPL;
                 tEl.textContent = 'Splunk MCP tool invoked — fetching live data from index=bms...';
 
                 // Round 2: Execute the real Splunk query via our MCP server
